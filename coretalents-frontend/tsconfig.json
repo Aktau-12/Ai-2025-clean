@@ -28,7 +28,10 @@
 
     /* ✅ Поддержка импорта JSON */
     "resolveJsonModule": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+
+    /* 🛠️ Поддержка JSX */
+    "jsx": "react-jsx"
   },
   "include": ["src"]
 }
