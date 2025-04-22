@@ -16,31 +16,31 @@ export default defineConfig({
     historyApiFallback: true,
     proxy: {
       "^/auth/.*": {
-        target: "http://localhost:8000",
+        target: import.meta.env.VITE_API_URL,
         changeOrigin: true,
       },
       "^/users/.*": {
-        target: "http://localhost:8000",
+        target: import.meta.env.VITE_API_URL,
         changeOrigin: true,
       },
       "^/tests/.*": {
-        target: "http://localhost:8000",
+        target: import.meta.env.VITE_API_URL,
         changeOrigin: true,
       },
       "^/coretalents/.*": {
-        target: "http://localhost:8000",
+        target: import.meta.env.VITE_API_URL,
         changeOrigin: true,
       },
       "^/mbti/.*": {
-        target: "http://localhost:8000",
+        target: import.meta.env.VITE_API_URL,
         changeOrigin: true,
       },
       "^/hero-progress/.*": {
-        target: "http://localhost:8000",
+        target: import.meta.env.VITE_API_URL,
         changeOrigin: true,
       },
       "^/rating/.*": {
-        target: "http://localhost:8000",
+        target: import.meta.env.VITE_API_URL,
         changeOrigin: true,
       },
     },
