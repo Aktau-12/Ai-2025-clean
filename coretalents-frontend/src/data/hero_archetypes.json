@@ -1,0 +1,74 @@
+[
+  {
+    "id": 1,
+    "code": "creator",
+    "name": "Творец",
+    "description": "Ты полон идей, вдохновения и стремления создавать новое. Для тебя важно самовыражение, креативность и свобода мышления.",
+    "coretalents_traits": ["Идеатор", "Визионер", "Новатор"],
+    "mbti_types": ["INFP", "ENFP", "INFJ"],
+    "bigfive_keywords": ["high_openness"]
+  },
+  {
+    "id": 2,
+    "code": "leader",
+    "name": "Лидер",
+    "description": "Ты чувствуешь ответственность, хочешь влиять и вести за собой других. Ты организованный, целеустремлённый и умеешь управлять.",
+    "coretalents_traits": ["Организатор", "Мотиватор", "Убедительный"],
+    "mbti_types": ["ENTJ", "ESTJ"],
+    "bigfive_keywords": ["high_extraversion", "high_conscientiousness"]
+  },
+  {
+    "id": 3,
+    "code": "sage",
+    "name": "Мудрец",
+    "description": "Ты наблюдателен, аналитичен и глубоко понимаешь природу вещей. Ты предпочитаешь размышлять и искать истину.",
+    "coretalents_traits": ["Аналитик", "Исследователь"],
+    "mbti_types": ["INTJ", "INTP"],
+    "bigfive_keywords": ["high_openness", "low_extraversion"]
+  },
+  {
+    "id": 4,
+    "code": "warrior",
+    "name": "Воин",
+    "description": "Ты не боишься трудностей, готов бороться за цели и преодолевать препятствия. Ты стойкий, решительный и выносливый.",
+    "coretalents_traits": ["Исполнитель", "Целеустремлённый"],
+    "mbti_types": ["ESTP", "ISTP"],
+    "bigfive_keywords": ["high_conscientiousness", "high_emotional_stability"]
+  },
+  {
+    "id": 5,
+    "code": "helper",
+    "name": "Помощник",
+    "description": "Ты стремишься поддерживать, заботиться и вдохновлять других. Ты эмпатичный, доброжелательный и надёжный.",
+    "coretalents_traits": ["Поддерживающий", "Командный"],
+    "mbti_types": ["ESFJ", "ENFJ"],
+    "bigfive_keywords": ["high_agreeableness"]
+  },
+  {
+    "id": 6,
+    "code": "explorer",
+    "name": "Исследователь",
+    "description": "Ты жаждешь нового опыта, открытий и знаний. Ты любознателен, независим и открыт для всего неизведанного.",
+    "coretalents_traits": ["Любопытный", "Инициативный"],
+    "mbti_types": ["INFP", "ISFP"],
+    "bigfive_keywords": ["high_openness", "low_conscientiousness"]
+  },
+  {
+    "id": 7,
+    "code": "strategist",
+    "name": "Стратег",
+    "description": "Ты думаешь наперёд, видишь схемы и умеешь планировать. У тебя развито критическое мышление и видение.",
+    "coretalents_traits": ["Планировщик", "Тактик"],
+    "mbti_types": ["INTJ", "ENTP"],
+    "bigfive_keywords": ["high_conscientiousness", "high_openness"]
+  },
+  {
+    "id": 8,
+    "code": "visionary",
+    "name": "Визионер",
+    "description": "Ты видишь картину будущего, мечтаешь масштабно и вдохновляешь других. Ты не боишься идти своим путём.",
+    "coretalents_traits": ["Мечтатель", "Лидер", "Провидец"],
+    "mbti_types": ["ENFP", "INFJ"],
+    "bigfive_keywords": ["high_openness", "moderate_extraversion"]
+  }
+]

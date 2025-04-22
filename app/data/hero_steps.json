@@ -1,0 +1,18 @@
+[
+  {
+    "stage": 1,
+    "title": "Пробуждение",
+    "steps": [
+      { "id": "coretalents_complete", "text": "Пройди 3 теста: CoreTalents, Big Five, MBTI", "points": 50 },
+      { "id": "analyze_results", "text": "Изучи свои результаты и выпиши 3 инсайта", "points": 20 }
+    ]
+  },
+  {
+    "stage": 2,
+    "title": "Первые шаги",
+    "steps": [
+      { "id": "set_goal", "text": "Сформулируй первую цель на месяц", "points": 30 },
+      { "id": "action_plan", "text": "Составь список задач по цели", "points": 20 }
+    ]
+  }
+]
