@@ -5,7 +5,7 @@ import stepsData from "../data/hero_steps.json";
 import axios from "axios";
 import HeroCoach from "./HeroCoach";
 const API_URL = import.meta.env.VITE_API_URL;
-const API_URL = import.meta.env.VITE_API_URL;
+
 
 export default function HeroPath() {
   const [archetype, setArchetype] = useState<any>(null);

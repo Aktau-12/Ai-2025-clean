@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function LoginRegister() {
@@ -15,33 +16,36 @@ export default function LoginRegister() {
 
   const handleLogin = async () => {
     try {
-      const res = await axios.post("${API_URL}/auth/login", {
-        username: email,
+      const res = await axios.post(`${API_URL}/auth/login`, {
+        email,
         password,
       });
       localStorage.setItem("token", res.data.access_token);
-      navigate("/test");
+      navigate("/dashboard");
     } catch (error) {
-      alert("Ошибка входа");
-      console.error(error);
+      alert("Ошибка входа. Проверьте логин и пароль.");
+      console.error("Login error:", error);
     }
   };
 
   const handleRegister = async () => {
     try {
-      await axios.post("${API_URL}/auth/register", {
+      await axios.post(`${API_URL}/auth/register`, {
         email: registerEmail,
         password: registerPassword,
       });
-      alert("Успешно зарегистрирован! Войдите.");
+      alert("Успешно зарегистрирован! Пожалуйста, войдите.");
+      setRegisterEmail("");
+      setRegisterPassword("");
+      // Переключаем вкладку на вход при необходимости
     } catch (error) {
-      alert("Ошибка регистрации");
-      console.error(error);
+      alert("Ошибка регистрации. Попробуйте снова.");
+      console.error("Register error:", error);
     }
   };
 
   return (
-    <div className="max-w-md mx-auto mt-20 p-6 border rounded-2xl shadow-xl">
+    <div className="max-w-md mx-auto mt-20 p-6 border rounded-2xl shadow-xl bg-white">
       <Tabs defaultValue="login">
         <TabsList className="w-full grid grid-cols-2 mb-6">
           <TabsTrigger value="login">Вход</TabsTrigger>

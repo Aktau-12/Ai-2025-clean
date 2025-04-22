@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-const API_URL = import.meta.env.VITE_API_URL;
+
 const API_URL = import.meta.env.VITE_API_URL;
 
 interface MBTIResult {
   type_code: string;
   description: string;
-  extended_description?: string; // ✅ добавлено новое поле
+  extended_description?: string;
   details?: Record<string, number>;
 }
 
@@ -26,7 +26,7 @@ const MBTIResults = () => {
     const fetchResult = async () => {
       try {
         const res = await axios.get<MBTIResult>(
-          "${API_URL}/mbti/me/result",
+          `${API_URL}/mbti/me/result`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -78,14 +78,13 @@ const MBTIResults = () => {
         />
       </div>
 
-     <h3 className="text-xl font-semibold">
-  Ваш тип:{" "}
-  <span className="text-blue-600 text-3xl font-bold">
-    {result.type_code}
-  </span>{" "}
-  — {result.description}
-</h3>
-
+      <h3 className="text-xl font-semibold">
+        Ваш тип:{" "}
+        <span className="text-blue-600 text-3xl font-bold">
+          {result.type_code}
+        </span>{" "}
+        — {result.description}
+      </h3>
 
       <p className="text-gray-700 text-lg leading-relaxed whitespace-pre-line">
         {result.description}

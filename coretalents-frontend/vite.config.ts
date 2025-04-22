@@ -1,48 +1,36 @@
+// coretalents-frontend/vite.config.ts
+import { defineConfig, loadEnv } from 'vite'
+import react from '@vitejs/plugin-react'
 
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-import path from "path";
+export default defineConfig(({ mode }) => {
+  // Загружаем все переменные из .env
+  const env = loadEnv(mode, process.cwd(), '')
 
-export default defineConfig({
-  plugins: [react()],
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "src"),
-    },
-  },
-  server: {
-    port: 5173,
-    open: true,
-    historyApiFallback: true,
-    proxy: {
-      "^/auth/.*": {
-        target: import.meta.env.VITE_API_URL,
-        changeOrigin: true,
-      },
-      "^/users/.*": {
-        target: import.meta.env.VITE_API_URL,
-        changeOrigin: true,
-      },
-      "^/tests/.*": {
-        target: import.meta.env.VITE_API_URL,
-        changeOrigin: true,
-      },
-      "^/coretalents/.*": {
-        target: import.meta.env.VITE_API_URL,
-        changeOrigin: true,
-      },
-      "^/mbti/.*": {
-        target: import.meta.env.VITE_API_URL,
-        changeOrigin: true,
-      },
-      "^/hero-progress/.*": {
-        target: import.meta.env.VITE_API_URL,
-        changeOrigin: true,
-      },
-      "^/rating/.*": {
-        target: import.meta.env.VITE_API_URL,
-        changeOrigin: true,
+  return {
+    plugins: [react()],
+    server: {
+      proxy: {
+        // Проксируем эндпоинты API на бэкенд
+        '/auth': {
+          target: env.VITE_API_URL,
+          changeOrigin: true,
+          secure: false,
+        },
+        '/users': {
+          target: env.VITE_API_URL,
+          changeOrigin: true,
+          secure: false,
+        },
+        '/tests': {
+          target: env.VITE_API_URL,
+          changeOrigin: true,
+          secure: false,
+        },
       },
     },
-  },
-});
+    define: {
+      // чтобы process.env не попадал в бандл
+      'process.env': {},
+    },
+  }
+})

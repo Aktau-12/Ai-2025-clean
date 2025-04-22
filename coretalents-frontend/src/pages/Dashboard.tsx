@@ -1,3 +1,4 @@
+// src/pages/Dashboard.tsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import HeroPath from "../components/HeroPath";
@@ -5,7 +6,8 @@ import Ranking from "../components/Ranking";
 import HeroProfessions from "../components/HeroProfessions";
 import HabitTracker from "./HabitTracker";
 import ThinkingAlgorithm from "../components/ThinkingAlgorithm";
-const API_URL = import.meta.env.VITE_API_URL;
+
+// Базовый URL API из переменных окружения
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function Dashboard() {
@@ -22,7 +24,8 @@ export default function Dashboard() {
       return;
     }
 
-    fetch("${API_URL}/users/me", {
+    // Получаем данные текущего пользователя
+    fetch(`${API_URL}/users/me`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(async (res) => {
@@ -36,7 +39,8 @@ export default function Dashboard() {
         navigate("/login");
       });
 
-    fetch("${API_URL}/tests/my-results", {
+    // Загружаем историю результатов
+    fetch(`${API_URL}/tests/my-results`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(async (res) => {
@@ -53,7 +57,7 @@ export default function Dashboard() {
     { key: "tests", label: "🧠 Мои тесты" },
     { key: "results", label: "📊 Результаты" },
     { key: "hero", label: "🛤 Путь героя" },
-    { key: "mentor", label: "🤖 AI-наставник" },
+    { key: "mentor", label: "🤖 AI‑наставник" },
     { key: "professions", label: "🧭 Профессии" },
     { key: "ranking", label: "🏆 Рейтинг" },
     { key: "habits", label: "💡 Привычки" },
@@ -62,7 +66,7 @@ export default function Dashboard() {
 
   return (
     <div className="max-w-5xl mx-auto p-6 space-y-6">
-      <h1 className="text-2xl font-bold text-center">📊 Добро пожаловать в Проект-Я</h1>
+      <h1 className="text-2xl font-bold text-center">📊 Добро пожаловать в Проект‑Я</h1>
       {email && (
         <p className="text-center text-gray-600">
           Вы вошли как <strong>{email}</strong>
@@ -85,10 +89,18 @@ export default function Dashboard() {
 
       {tab === "tests" && (
         <div className="space-y-4">
-          <button onClick={() => navigate("/coretalents")} className="btn-primary">CoreTalents 34</button>
-          <button onClick={() => navigate("/bigfive")} className="btn-primary">Big Five</button>
-          <button onClick={() => navigate("/mbti")} className="btn-primary">MBTI</button>
-          <button onClick={() => setTab("menu")} className="btn-outline">🔙 Назад в меню</button>
+          <button onClick={() => navigate("/coretalents")} className="btn-primary">
+            CoreTalents 34
+          </button>
+          <button onClick={() => navigate("/bigfive")} className="btn-primary">
+            Big Five
+          </button>
+          <button onClick={() => navigate("/mbti")} className="btn-primary">
+            MBTI
+          </button>
+          <button onClick={() => setTab("menu")} className="btn-outline">
+            🔙 Назад в меню
+          </button>
         </div>
       )}
 
@@ -108,18 +120,27 @@ export default function Dashboard() {
           <h3 className="font-semibold">📜 История прохождения:</h3>
           {results.map((res, idx) => (
             <div key={idx} className="bg-gray-100 rounded p-4">
-              <p className="text-sm font-medium">🧪 {res.test_name} — {new Date(res.completed_at).toLocaleString()}</p>
-              {res.summary && <p className="text-sm text-gray-700 mt-1">{res.summary}</p>}
+              <p className="text-sm font-medium">
+                🧪 {res.test_name} —{" "}
+                {new Date(res.completed_at).toLocaleString()}
+              </p>
+              {res.summary && (
+                <p className="text-sm text-gray-700 mt-1">{res.summary}</p>
+              )}
             </div>
           ))}
-          <button onClick={() => setTab("menu")} className="btn-outline">🔙 Назад в меню</button>
+          <button onClick={() => setTab("menu")} className="btn-outline">
+            🔙 Назад в меню
+          </button>
         </div>
       )}
 
       {tab === "hero" && (
         <div className="space-y-4">
           <HeroPath />
-          <button onClick={() => setTab("menu")} className="btn-outline">🔙 Назад в меню</button>
+          <button onClick={() => setTab("menu")} className="btn-outline">
+            🔙 Назад в меню
+          </button>
         </div>
       )}
 
@@ -131,40 +152,58 @@ export default function Dashboard() {
             <li>Сфокусируйся на одном проекте хотя бы на неделю.</li>
             <li>Сделай первые 3 шага — это заложит фундамент.</li>
           </ul>
-          <button onClick={() => setTab("menu")} className="btn-outline">🔙 Назад в меню</button>
+          <button onClick={() => setTab("menu")} className="btn-outline">
+            🔙 Назад в меню
+          </button>
         </div>
       )}
 
       {tab === "professions" && (
         <div>
           <HeroProfessions />
-          <button onClick={() => setTab("menu")} className="btn-outline mt-4">🔙 Назад в меню</button>
+          <button onClick={() => setTab("menu")} className="btn-outline mt-4">
+            🔙 Назад в меню
+          </button>
         </div>
       )}
 
       {tab === "ranking" && (
         <div>
           <Ranking />
-          <button onClick={() => setTab("menu")} className="btn-outline mt-4">🔙 Назад в меню</button>
+          <button onClick={() => setTab("menu")} className="btn-outline mt-4">
+            🔙 Назад в меню
+          </button>
         </div>
       )}
 
       {tab === "habits" && (
         <div>
           <HabitTracker />
-          <button onClick={() => setTab("menu")} className="btn-outline mt-4">🔙 Назад в меню</button>
+          <button onClick={() => setTab("menu")} className="btn-outline mt-4">
+            🔙 Назад в меню
+          </button>
         </div>
       )}
 
       {tab === "thinking" && (
         <div>
           <ThinkingAlgorithm />
-          <button onClick={() => setTab("menu")} className="btn-outline mt-4">🔙 Назад в меню</button>
+          <button onClick={() => setTab("menu")} className="btn-outline mt-4">
+            🔙 Назад в меню
+          </button>
         </div>
       )}
 
       <div className="text-center pt-8">
-        <button onClick={() => navigate("/login")} className="bg-red-500 text-white px-4 py-2 rounded">🚪 Выйти</button>
+        <button
+          onClick={() => {
+            localStorage.removeItem("token");
+            navigate("/login");
+          }}
+          className="bg-red-500 text-white px-4 py-2 rounded"
+        >
+          🚪 Выйти
+        </button>
       </div>
     </div>
   );

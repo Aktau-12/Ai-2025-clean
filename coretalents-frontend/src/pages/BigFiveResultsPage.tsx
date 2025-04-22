@@ -1,8 +1,10 @@
+// src/pages/BigFiveResultsPage.tsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BigFiveResults from "./BigFiveResults";
 import axios from "axios";
-const API_URL = import.meta.env.VITE_API_URL;
+
+// Берём базовый URL из env
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function BigFiveResultsPage() {
@@ -14,17 +16,20 @@ export default function BigFiveResultsPage() {
   useEffect(() => {
     const fetchResults = async () => {
       try {
-        const res = await axios.get("${API_URL}/tests/2/result", {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
+        const res = await axios.get(
+          `${API_URL}/tests/2/result`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
 
-        // Проверка формата данных
+        // Проверяем, что пришёл объект с ключами O, C, E, A, N
         if (
           res.data &&
           typeof res.data === "object" &&
-          ["O", "C", "E", "A", "N"].every((key) => key in res.data)
+          ["O", "C", "E", "A", "N"].every((k) => k in res.data)
         ) {
           setResult(res.data);
         } else {
@@ -39,7 +44,7 @@ export default function BigFiveResultsPage() {
     };
 
     fetchResults();
-  }, []);
+  }, [navigate]);
 
   return (
     <div className="p-6 text-center space-y-6">

@@ -1,9 +1,10 @@
+// src/pages/HabitTracker.tsx
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import AddHabitModal from "@/components/AddHabitModal"; // ✅ модалка добавления
 import HabitProgress from "@/components/HabitProgress"; // ✅ прогресс по дням недели
-const API_URL = import.meta.env.VITE_API_URL;
+
 const API_URL = import.meta.env.VITE_API_URL;
 
 interface Habit {
@@ -24,12 +25,12 @@ const HabitTracker = () => {
   const fetchHabits = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get("${API_URL}/habits/my", {
+      const res = await axios.get(`${API_URL}/habits/my`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setHabits(res.data);
     } catch (err) {
-      console.error("Ошибка при загрузке привычек", err);
+      console.error("Ошибка при загрузке привычек:", err);
     }
   };
 
@@ -43,7 +44,7 @@ const HabitTracker = () => {
       );
       fetchHabits();
     } catch (err) {
-      console.error("Ошибка при отметке привычки", err);
+      console.error("Ошибка при отметке привычки:", err);
     }
   };
 

@@ -1,6 +1,8 @@
 // src/pages/LoginPage.tsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+
+// Базовый URL API из переменных окружения
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function LoginPage() {
@@ -9,9 +11,6 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-
-  // Базовый URL API из переменных окружения
-  const API_URL = import.meta.env.VITE_API_URL;
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -75,17 +74,20 @@ export default function LoginPage() {
 
       <button
         onClick={handleLogin}
-        className={`w-full py-2 rounded text-white ${loading ? "bg-gray-500" : "bg-blue-600 hover:bg-blue-700"}`}
+        className={`w-full py-2 rounded text-white ${
+          loading ? "bg-gray-500" : "bg-blue-600 hover:bg-blue-700"
+        }`}
         disabled={loading}
       >
         {loading ? "⏳ Входим..." : "Войти"}
       </button>
 
       <p className="text-center mt-4 text-sm">
-        Нет аккаунта?{' '}
+        Нет аккаунта?{" "}
         <a href="/register" className="text-blue-600 underline">
           Зарегистрироваться
         </a>
       </p>
     </div>
+  );
 }

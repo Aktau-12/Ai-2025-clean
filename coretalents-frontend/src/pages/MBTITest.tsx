@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-const API_URL = import.meta.env.VITE_API_URL;
+
 const API_URL = import.meta.env.VITE_API_URL;
 
 interface Question {
@@ -28,7 +28,7 @@ const MBTITest = () => {
 
   useEffect(() => {
     axios
-      .get("${API_URL}/mbti/questions")
+      .get<Question[]>(`${API_URL}/mbti/questions`)
       .then((res) => {
         setQuestions(res.data);
         setLoading(false);
@@ -42,13 +42,14 @@ const MBTITest = () => {
   const handleAnswer = (choice: number) => {
     const question = questions[currentIndex];
     let answer = "";
+
     if (choice === 1) answer = question.trait_a;
     else if (choice === 2) answer = question.trait_b;
-    else if (choice === 4 || choice === 0) answer = "X";
+    else answer = "X";
 
     const newAnswer: AnswerPayloadItem = {
       question_id: question.id,
-      answer: answer,
+      answer,
       trait_a: question.trait_a,
       trait_b: question.trait_b,
     };
@@ -58,7 +59,7 @@ const MBTITest = () => {
     setAnswers(newAnswers);
 
     if (currentIndex + 1 < questions.length) {
-      setCurrentIndex(currentIndex + 1);
+      setCurrentIndex((idx) => idx + 1);
     }
   };
 
@@ -66,8 +67,8 @@ const MBTITest = () => {
     const token = localStorage.getItem("token");
     axios
       .post(
-        "${API_URL}/mbti/submit",
-        { answers: answers },
+        `${API_URL}/mbti/submit`,
+        { answers },
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -90,7 +91,8 @@ const MBTITest = () => {
       <div className="text-center">
         <h2 className="text-2xl font-bold">🧠 MBTI-тест</h2>
         <p>
-          Вопрос {currentIndex + 1} из {questions.length} | ⏱️ {progress.toFixed(1)}%
+          Вопрос {currentIndex + 1} из {questions.length} | ⏱️{" "}
+          {progress.toFixed(1)}%
         </p>
       </div>
 

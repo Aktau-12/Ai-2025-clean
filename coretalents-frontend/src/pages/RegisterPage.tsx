@@ -1,7 +1,8 @@
 // src/pages/RegisterPage.tsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-const API_URL = import.meta.env.VITE_API_URL;
+
+// Базовый URL API из переменных окружения
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function RegisterPage() {
@@ -11,9 +12,6 @@ export default function RegisterPage() {
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
-
-  // Базовый URL API из переменных окружения
-  const API_URL = import.meta.env.VITE_API_URL;
 
   const handleRegister = async () => {
     if (!name || !email || !password || !confirm) {
@@ -27,10 +25,10 @@ export default function RegisterPage() {
     }
 
     try {
-      const response = await fetch(`${API_URL}/auth/register`, {
+      const response = await fetch(`${API_URL}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ email, password }), // имя (name) обычно хранится отдельно, бэкенд по вашей модели принимает email+password :contentReference[oaicite:0]{index=0}&#8203;:contentReference[oaicite:1]{index=1}
       });
 
       if (!response.ok) {
@@ -90,7 +88,7 @@ export default function RegisterPage() {
       </button>
 
       <p className="text-center mt-4 text-sm">
-        Уже есть аккаунт?{' '}
+        Уже есть аккаунт?{" "}
         <a href="/login" className="text-blue-600 underline">
           Войти
         </a>

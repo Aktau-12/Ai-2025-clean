@@ -1,43 +1,50 @@
+// src/pages/CoreTalentsTest.tsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import CoreTalentsResults from "../pages/CoreTalentsResults";
+
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function CoreTalentsTest() {
-  const [questions, setQuestions] = useState([]);
-  const [answers, setAnswers] = useState({});
+  const [questions, setQuestions] = useState<any[]>([]);
+  const [answers, setAnswers] = useState<Record<number, number>>({});
   const [current, setCurrent] = useState(0);
   const [submitted, setSubmitted] = useState(false);
   const [timer, setTimer] = useState(20);
   const navigate = useNavigate();
 
+  // Загрузка вопросов
   useEffect(() => {
     axios
-      .get("${API_URL}/tests/1/questions")
+      .get(`${API_URL}/tests/1/questions`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      })
       .then((res) => setQuestions(res.data))
-      .catch((error) => console.error("Ошибка загрузки:", error));
-  }, []);
+      .catch((error) => console.error("❌ Ошибка загрузки вопросов:", error));
+  }, [navigate]);
 
+  // Таймер на вопрос
   useEffect(() => {
     if (!questions.length) return;
-
     setTimer(20);
     const countdown = setInterval(() => {
       setTimer((prev) => {
         if (prev <= 1) {
           clearInterval(countdown);
           handleAutoNext();
+          return 0;
         }
         return prev - 1;
       });
     }, 1000);
-
     return () => clearInterval(countdown);
   }, [current, questions]);
 
-  const handleSelect = (questionId, value) => {
-    setAnswers({ ...answers, [questionId]: value });
+  const handleSelect = (questionId: number, value: number) => {
+    setAnswers((prev) => ({ ...prev, [questionId]: value }));
   };
 
   const handleAutoNext = () => {
@@ -49,20 +56,25 @@ export default function CoreTalentsTest() {
   };
 
   const handleNext = () => {
-    setCurrent((prev) => prev + 1);
+    if (current < questions.length - 1) {
+      setCurrent((prev) => prev + 1);
+    }
   };
 
   const handleSubmit = async () => {
-    const payload = { answers };
     try {
-      await axios.post("${API_URL}/tests/1/submit", payload, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+      await axios.post(
+        `${API_URL}/tests/1/submit`,
+        { answers },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
       setSubmitted(true);
     } catch (error) {
-      console.error("Ошибка при отправке:", error);
+      console.error("❌ Ошибка при отправке:", error);
     }
   };
 
@@ -99,12 +111,12 @@ export default function CoreTalentsTest() {
 
   const progress = ((current + 1) / questions.length) * 100;
 
-  const labels = {
-    "-2": "Полностью согласен",
-    "-1": "Частично согласен",
-    "0": "Согласен с обоими",
-    "1": "Частично согласен",
-    "2": "Полностью согласен",
+  const labels: Record<number, string> = {
+    [-2]: "Полностью согласен",
+    [-1]: "Частично согласен",
+    [0]: "Согласен с обоими",
+    [1]: "Частично согласен",
+    [2]: "Полностью согласен",
   };
 
   return (
@@ -153,7 +165,7 @@ export default function CoreTalentsTest() {
           ))}
         </div>
 
-        {/* Визуальный прогресс-бар таймера */}
+        {/* Прогресс-бар таймера */}
         <div className="w-full h-2 bg-gray-200 rounded-full mt-4">
           <div
             className="h-full bg-orange-500 rounded-full transition-all duration-1000"

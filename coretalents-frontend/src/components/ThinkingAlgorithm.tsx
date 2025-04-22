@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import HabitTracker from "../pages/HabitTracker"; // ✅ если HabitTracker лежит в pages
 const API_URL = import.meta.env.VITE_API_URL;
-const API_URL = import.meta.env.VITE_API_URL;
+
 
 const steps = [
   {
