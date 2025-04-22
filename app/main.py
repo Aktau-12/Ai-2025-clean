@@ -1,6 +1,8 @@
+
 import os
 from pathlib import Path
-
+from app.routes.auth import router as auth_router
+app.include_router(auth_router)
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
