@@ -21,7 +21,7 @@ app = FastAPI(
 
 # 🌐 Разрешённые источники (CORS) — для фронтенда на React (Vite)
 origins = [
-    "http://localhost:5173",
+    os.getenv("FRONTEND_URL","*"),
     "http://127.0.0.1:5173",
 ]
 

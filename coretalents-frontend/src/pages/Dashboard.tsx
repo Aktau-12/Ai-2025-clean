@@ -6,6 +6,7 @@ import HeroProfessions from "../components/HeroProfessions";
 import HabitTracker from "./HabitTracker";
 import ThinkingAlgorithm from "../components/ThinkingAlgorithm";
 const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function Dashboard() {
   const [email, setEmail] = useState("");

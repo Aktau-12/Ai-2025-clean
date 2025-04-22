@@ -10,6 +10,7 @@ import {
 } from "recharts";
 import { useNavigate } from "react-router-dom"; // ✅ добавлено
 const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function BigFiveResults({ data }) {
   const navigate = useNavigate(); // ✅ добавлено

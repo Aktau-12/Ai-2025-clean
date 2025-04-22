@@ -4,6 +4,7 @@ import axios from "axios";
 import AddHabitModal from "@/components/AddHabitModal"; // ✅ модалка добавления
 import HabitProgress from "@/components/HabitProgress"; // ✅ прогресс по дням недели
 const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL;
 
 interface Habit {
   id: number;

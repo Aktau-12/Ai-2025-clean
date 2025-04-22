@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function LoginRegister() {
   const [email, setEmail] = useState("");
@@ -14,7 +15,7 @@ export default function LoginRegister() {
 
   const handleLogin = async () => {
     try {
-      const res = await axios.post("http://localhost:8000/auth/login", {
+      const res = await axios.post("${API_URL}/auth/login", {
         username: email,
         password,
       });
@@ -28,7 +29,7 @@ export default function LoginRegister() {
 
   const handleRegister = async () => {
     try {
-      await axios.post("http://localhost:8000/auth/register", {
+      await axios.post("${API_URL}/auth/register", {
         email: registerEmail,
         password: registerPassword,
       });
