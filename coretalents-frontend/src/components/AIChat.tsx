@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function AIChat() {
   const [model, setModel] = useState("gpt");
@@ -12,7 +13,7 @@ export default function AIChat() {
 
     setLoading(true);
     try {
-      const res = await axios.post("http://localhost:8000/ai/ask", {
+      const res = await axios.post("${API_URL}/ai/ask", {
         model,
         question,
       });

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import HeroProfessions from "../components/HeroProfessions";
+const API_URL = import.meta.env.VITE_API_URL;
 
 interface HeroStep {
   id: string;
@@ -28,8 +29,8 @@ export default function HeroJourney() {
     const fetchData = async () => {
       try {
         const [heroRes, userRes] = await Promise.all([
-          axios.get("http://localhost:8000/hero/full", { headers }),
-          axios.get("http://localhost:8000/users/me", { headers }),
+          axios.get("${API_URL}/hero/full", { headers }),
+          axios.get("${API_URL}/users/me", { headers }),
         ]);
         setStages(heroRes.data.stages);
         setXp(userRes.data.xp || 0);
@@ -46,7 +47,7 @@ export default function HeroJourney() {
   const handleToggle = async (step_id: string, completed: boolean) => {
     try {
       await axios.post(
-        "http://localhost:8000/hero/progress",
+        "${API_URL}/hero/progress",
         { step_id, completed: !completed },
         { headers }
       );
@@ -60,7 +61,7 @@ export default function HeroJourney() {
         }))
       );
 
-      const res = await axios.get("http://localhost:8000/users/me", { headers });
+      const res = await axios.get("${API_URL}/users/me", { headers });
       setXp(res.data.xp || 0);
     } catch (err) {
       console.error("Ошибка обновления шага:", err);

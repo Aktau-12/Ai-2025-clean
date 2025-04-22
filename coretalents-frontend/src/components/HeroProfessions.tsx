@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+const API_URL = import.meta.env.VITE_API_URL;
 
 interface Profession {
   name: string;
@@ -17,7 +18,7 @@ const HeroProfessions: React.FC = () => {
     const fetchProfessions = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.get("http://localhost:8000/hero/professions", {
+        const response = await axios.get("${API_URL}/hero/professions", {
           headers: {
             Authorization: `Bearer ${token}`,
           },

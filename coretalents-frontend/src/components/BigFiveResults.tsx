@@ -1,5 +1,6 @@
 import React from "react";
 import {
+const API_URL = import.meta.env.VITE_API_URL;
   Radar,
   RadarChart,
   PolarGrid,

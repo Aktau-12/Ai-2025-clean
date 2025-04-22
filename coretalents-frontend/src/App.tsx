@@ -11,6 +11,7 @@ import RegisterPage from "./pages/RegisterPage";
 import PrivateRoute from "./components/PrivateRoute";
 import HeroJourney from "./pages/HeroJourney"; // ✅ добавлено
 import HabitTracker from "./pages/HabitTracker"; // ✅ НОВОЕ
+const API_URL = import.meta.env.VITE_API_URL;
 
 function App() {
   return (

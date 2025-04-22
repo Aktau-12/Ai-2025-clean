@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+const API_URL = import.meta.env.VITE_API_URL;
 
 interface Question {
   id: number;
@@ -26,7 +27,7 @@ const MBTITest = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:8000/mbti/questions")
+      .get("${API_URL}/mbti/questions")
       .then((res) => {
         setQuestions(res.data);
         setLoading(false);
@@ -64,7 +65,7 @@ const MBTITest = () => {
     const token = localStorage.getItem("token");
     axios
       .post(
-        "http://localhost:8000/mbti/submit",
+        "${API_URL}/mbti/submit",
         { answers: answers },
         {
           headers: { Authorization: `Bearer ${token}` },

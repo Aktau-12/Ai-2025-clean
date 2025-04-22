@@ -3,6 +3,7 @@ import axios from "axios";
 import talentsData from "../data/coretalents_results_data.json"; // ✅ вернули как было
 import rawMapping from "../data/coretalents_question_mapping.json";
 import { useNavigate } from "react-router-dom";
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function CoreTalentsResults() {
   const [results, setResults] = useState([]);
@@ -18,7 +19,7 @@ export default function CoreTalentsResults() {
   useEffect(() => {
     const fetchResults = async () => {
       try {
-        const res = await axios.get("http://localhost:8000/tests/coretalents/results", {
+        const res = await axios.get("${API_URL}/tests/coretalents/results", {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },

@@ -3,6 +3,7 @@ import * as RadioGroupPrimitive from "@radix-ui/react-radio-group"
 import { CircleIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+const API_URL = import.meta.env.VITE_API_URL;
 
 function RadioGroup({
   className,

@@ -1,6 +1,7 @@
 // src/pages/LoginPage.tsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -8,6 +9,9 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Базовый URL API из переменных окружения
+  const API_URL = import.meta.env.VITE_API_URL;
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -19,7 +23,7 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const response = await fetch("http://localhost:8000/auth/login", {
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -78,7 +82,7 @@ export default function LoginPage() {
       </button>
 
       <p className="text-center mt-4 text-sm">
-        Нет аккаунта?{" "}
+        Нет аккаунта?{' '}
         <a href="/register" className="text-blue-600 underline">
           Зарегистрироваться
         </a>

@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Card } from "@/components/ui/card";
+const API_URL = import.meta.env.VITE_API_URL;
 
 type UserRating = {
   user_id: number;
@@ -18,7 +19,7 @@ export default function RatingPage() {
     const fetchRatings = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get("http://localhost:8000/rating", {
+        const res = await axios.get("${API_URL}/rating", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUsers(res.data);

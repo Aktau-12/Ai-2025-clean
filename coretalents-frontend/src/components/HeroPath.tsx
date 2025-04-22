@@ -4,6 +4,7 @@ import archetypes from "../data/hero_archetypes.json";
 import stepsData from "../data/hero_steps.json";
 import axios from "axios";
 import HeroCoach from "./HeroCoach";
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function HeroPath() {
   const [archetype, setArchetype] = useState<any>(null);
@@ -37,7 +38,7 @@ export default function HeroPath() {
     const fetchProgress = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get("http://localhost:8000/hero/progress", {
+        const res = await axios.get("${API_URL}/hero/progress", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -66,7 +67,7 @@ export default function HeroPath() {
     try {
       const token = localStorage.getItem("token");
       await axios.post(
-        "http://localhost:8000/hero/progress",
+        "${API_URL}/hero/progress",
         { step_id: stepId, completed: updated },
         { headers: { Authorization: `Bearer ${token}` } }
       );

@@ -5,6 +5,7 @@ import Ranking from "../components/Ranking";
 import HeroProfessions from "../components/HeroProfessions";
 import HabitTracker from "./HabitTracker";
 import ThinkingAlgorithm from "../components/ThinkingAlgorithm";
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function Dashboard() {
   const [email, setEmail] = useState("");
@@ -20,7 +21,7 @@ export default function Dashboard() {
       return;
     }
 
-    fetch("http://localhost:8000/users/me", {
+    fetch("${API_URL}/users/me", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(async (res) => {
@@ -34,7 +35,7 @@ export default function Dashboard() {
         navigate("/login");
       });
 
-    fetch("http://localhost:8000/tests/my-results", {
+    fetch("${API_URL}/tests/my-results", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(async (res) => {

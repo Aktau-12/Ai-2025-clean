@@ -1,4 +1,5 @@
 import archetypes from "../data/hero_archetypes.json";
+const API_URL = import.meta.env.VITE_API_URL;
 
 interface UserProfile {
   mbti: string;

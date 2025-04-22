@@ -1,6 +1,7 @@
 // Ranking.tsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+const API_URL = import.meta.env.VITE_API_URL;
 
 type RankedUser = {
   user_id: number;
@@ -25,7 +26,7 @@ export default function Ranking() {
       return;
     }
 
-    fetch("http://localhost:8000/rating/", {
+    fetch("${API_URL}/rating/", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

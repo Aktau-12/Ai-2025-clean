@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
+const API_URL = import.meta.env.VITE_API_URL;
 
 // 📦 Карточка-обёртка
 function Card({ className, ...props }: React.ComponentProps<"div">) {
