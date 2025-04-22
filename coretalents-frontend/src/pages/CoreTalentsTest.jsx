@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import CoreTalentsResults from "../Pages/CoreTalentsResults";
+import CoreTalentsResults from "../pages/CoreTalentsResults";
 
 export default function CoreTalentsTest() {
   const [questions, setQuestions] = useState([]);
