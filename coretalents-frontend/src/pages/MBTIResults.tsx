@@ -123,3 +123,5 @@ const MBTIResults = () => {
 };
 
 export default MBTIResults;
+
+

@@ -121,3 +121,5 @@ export default function BigFiveResults({ data }: Props) {
     </div>
   );
 }
+
+

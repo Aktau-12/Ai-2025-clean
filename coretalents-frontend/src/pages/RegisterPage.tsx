@@ -25,10 +25,10 @@ export default function RegisterPage() {
     }
 
     try {
-      const response = await fetch(`${API_URL}/register`, {
+      const response = await fetch(`${API_URL}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }), // имя (name) обычно хранится отдельно, бэкенд по вашей модели принимает email+password :contentReference[oaicite:0]{index=0}&#8203;:contentReference[oaicite:1]{index=1}
+        body: JSON.stringify({ name, email, password }), // имя (name) обычно хранится отдельно, бэкенд по вашей модели принимает email+password :contentReference[oaicite:0]{index=0}&#8203;:contentReference[oaicite:1]{index=1}
       });
 
       if (!response.ok) {
@@ -96,3 +96,5 @@ export default function RegisterPage() {
     </div>
   );
 }
+
+

@@ -62,3 +62,5 @@ const HeroCoach: React.FC<Props> = ({ archetype, bigfive, completedSteps }) => {
 };
 
 export default HeroCoach;
+
+

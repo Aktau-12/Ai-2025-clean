@@ -159,3 +159,5 @@ const AddHabitModal = ({ isOpen, onClose, onAdded }: Props) => {
 };
 
 export default AddHabitModal;
+
+

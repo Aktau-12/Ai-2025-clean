@@ -24,3 +24,5 @@ const HabitProgress = ({ weekLog }: HabitProgressProps) => {
 };
 
 export default HabitProgress;
+
+

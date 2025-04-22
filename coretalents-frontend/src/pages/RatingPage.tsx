@@ -70,3 +70,5 @@ export default function RatingPage() {
     </div>
   );
 }
+
+

@@ -50,3 +50,5 @@ export function getHeroArchetype(profile: UserProfile) {
   const top = Object.entries(scores).sort((a, b) => b[1] - a[1])[0];
   return archetypes.find((a) => a.code === top[0]);
 }
+
+

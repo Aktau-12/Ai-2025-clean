@@ -57,3 +57,5 @@ const HeroProfessions: React.FC = () => {
 };
 
 export default HeroProfessions;
+
+
