@@ -13,17 +13,18 @@
     "moduleDetection": "force",
     "noEmit": true,
 
-    /* Linting */
+    /* Линтинг */
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
 
-    /* 🔧 Поддержка alias @ -> src */
+    /* 🔧 Поддержка alias @ -> src и @components */
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@components/*": ["src/components/*"]
     },
 
     /* ✅ Поддержка импорта JSON */
