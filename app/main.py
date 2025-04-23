@@ -8,6 +8,7 @@ import os
 load_dotenv(Path(__file__).resolve().parent / ".env")
 
 # Инициализация FastAPI
+print("✅ MAIN.PY ЗАПУЩЕН")
 app = FastAPI(
     title="AI Profiler",
     description="🧠 Платформа для психологических тестов, саморазвития и AI-помощи",
