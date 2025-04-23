@@ -13,7 +13,8 @@ class User(Base):
     name = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     mbti_type = Column(String, nullable=True)
-    archetype = Column(String, nullable=True)  # ✅ Исправлено
+    archetype = Column(String, nullable=True)
+    xp = Column(Integer, default=0)  # ✅ добавлено
 
     # Один-к-одному: XP (связь с UserHeroProgress)
     hero_progress = relationship(UserHeroProgress, back_populates="user", uselist=False)
@@ -21,7 +22,7 @@ class User(Base):
     # Один-ко-многим: шаги пути героя
     hero_step_progress = relationship(UserHeroStep, back_populates="user")
 
-    # ⚠️ Исправлено: строка вместо импорта (чтобы избежать циклического импорта)
+    # ⚠️ Строка вместо импорта (чтобы избежать циклического импорта)
     results = relationship("UserResult", back_populates="user")
 
     def __repr__(self):
