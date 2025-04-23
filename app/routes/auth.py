@@ -9,7 +9,7 @@ from app.database.db import SessionLocal
 from app.models.user import User
 from pydantic import BaseModel
 from dotenv import load_dotenv
-from pathlib import Path  # ✅ для надёжного пути
+from pathlib import Path
 import os
 
 # 🔄 Загружаем .env из папки app (на уровень выше текущего файла)
@@ -18,7 +18,7 @@ load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 # 🔐 JWT конфигурация
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 1440))  # по умолчанию 24ч
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 1440))
 
 if not SECRET_KEY:
     raise RuntimeError("❌ SECRET_KEY не найден в .env")
@@ -32,6 +32,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 class UserCreate(BaseModel):
     email: str
     password: str
+    name: Optional[str] = None  # 👈 Добавлено поле name
 
 # 🔍 Проверка и хеширование паролей
 def verify_password(plain_password, hashed_password):
@@ -80,8 +81,8 @@ def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
     new_user = User(
         email=user_data.email,
         password_hash=hashed_password,
-        name=user_data.email,
-        xp=0  # ✅ начальный опыт
+        name=user_data.name or user_data.email,  # 👈 Используем имя, если указано
+        xp=0
     )
     db.add(new_user)
     db.commit()

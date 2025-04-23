@@ -25,7 +25,7 @@ export default function LoginPage() {
       const response = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ email, password }), // 👈 Убрали name
       });
 
       if (!response.ok) {
@@ -91,5 +91,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
-

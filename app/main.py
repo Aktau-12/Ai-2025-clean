@@ -16,8 +16,9 @@ app = FastAPI(
 
 # 🌐 Настройка CORS
 origins = [
-    "https://ai-2025-clean-1.onrender.com",  # ✅ твой frontend
-    "http://localhost:5173",                 # локальный
+    "https://ai-2025-clean-1.onrender.com",  # ✅ основной фронтенд
+    "https://ai-2025-clean.onrender.com",    # 👈 добавлен второй поддомен
+    "http://localhost:5173",                 # локальный для разработки
 ]
 
 app.add_middleware(
