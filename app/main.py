@@ -3,26 +3,23 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from pathlib import Path
 import os
+import subprocess
 
-# 🔄 Только в проде (Render) — запускаем alembic upgrade
-if os.getenv("RENDER") == "true":
-    import subprocess
-    print("⚙️ Выполняем alembic upgrade head (Render)...")
-    subprocess.run(["alembic", "upgrade", "head"])
+# ✅ Загружаем .env до любых операций с переменными окружения
+load_dotenv(Path(__file__).resolve().parent / ".env")
 
-# ✅ Загружаем .env локально (на Render это не нужно)
-if os.getenv("RENDER") is None:
-    load_dotenv(Path(__file__).resolve().parent / ".env")
+# ✅ Выполняем alembic upgrade после загрузки .env
+subprocess.run(["alembic", "upgrade", "head"])
 
-# 🚀 Инициализация FastAPI
 print("✅ MAIN.PY ЗАПУЩЕН")
+
 app = FastAPI(
     title="AI Profiler",
     description="🧠 Платформа для психологических тестов, саморазвития и AI-помощи",
     version="1.0.0",
 )
 
-# 🌐 CORS
+# 🌐 Настройка CORS
 origins = [
     "https://ai-2025-clean-1.onrender.com",
     "https://ai-2025-clean.onrender.com",
@@ -37,10 +34,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 🔗 Импорт роутов
+# 📦 Импорт роутов
 from app.routes import auth, user, test, coretalents, mbti, hero, rating, habit
 
-# 📌 Подключаем роутеры
+# Подключение роутеров
 app.include_router(auth.router, prefix="/auth", tags=["Auth"])
 app.include_router(user.router, prefix="/users", tags=["Users"])
 app.include_router(test.router, prefix="/tests", tags=["Tests"])
