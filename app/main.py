@@ -47,6 +47,7 @@ app.include_router(hero.router, prefix="/hero", tags=["Hero"])
 app.include_router(rating.router, prefix="/rating", tags=["Rating"])
 app.include_router(habit.router, prefix="/habits", tags=["Habits"])
 
-@app.get("/")
+# ── Поддержка GET и HEAD для корневого пути ─────────────────
+@app.api_route("/", methods=["GET", "HEAD"])
 def root():
     return {"message": "✅ AI Profiler работает!"}
