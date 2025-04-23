@@ -12,13 +12,14 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 export default function Dashboard() {
   const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
   const [mbtiType, setMbtiType] = useState<string | null>(null);
   const [results, setResults] = useState<any[]>([]);
   const [tab, setTab] = useState("menu");
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     if (!token) {
       navigate("/login");
       return;
@@ -32,10 +33,11 @@ export default function Dashboard() {
         if (!res.ok) throw new Error("Не удалось получить пользователя");
         const data = await res.json();
         setEmail(data.email);
+        setName(data.name || data.email);
         setMbtiType(data.mbti_type || null);
       })
       .catch(() => {
-        localStorage.removeItem("token");
+        localStorage.removeItem("access_token");
         navigate("/login");
       });
 
@@ -66,7 +68,9 @@ export default function Dashboard() {
 
   return (
     <div className="max-w-5xl mx-auto p-6 space-y-6">
-      <h1 className="text-2xl font-bold text-center">📊 Добро пожаловать в Проект‑Я</h1>
+      <h1 className="text-2xl font-bold text-center">
+        📊 Добро пожаловать, {name || email}!
+      </h1>
       {email && (
         <p className="text-center text-gray-600">
           Вы вошли как <strong>{email}</strong>
@@ -121,8 +125,7 @@ export default function Dashboard() {
           {results.map((res, idx) => (
             <div key={idx} className="bg-gray-100 rounded p-4">
               <p className="text-sm font-medium">
-                🧪 {res.test_name} —{" "}
-                {new Date(res.completed_at).toLocaleString()}
+                🧪 {res.test_name} — {new Date(res.completed_at).toLocaleString()}
               </p>
               {res.summary && (
                 <p className="text-sm text-gray-700 mt-1">{res.summary}</p>
@@ -197,7 +200,7 @@ export default function Dashboard() {
       <div className="text-center pt-8">
         <button
           onClick={() => {
-            localStorage.removeItem("token");
+            localStorage.removeItem("access_token");
             navigate("/login");
           }}
           className="bg-red-500 text-white px-4 py-2 rounded"
@@ -208,5 +211,3 @@ export default function Dashboard() {
     </div>
   );
 }
-
-

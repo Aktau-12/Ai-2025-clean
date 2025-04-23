@@ -28,7 +28,7 @@ export default function RegisterPage() {
       const response = await fetch(`${API_URL}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }), // имя (name) обычно хранится отдельно, бэкенд по вашей модели принимает email+password :contentReference[oaicite:0]{index=0}&#8203;:contentReference[oaicite:1]{index=1}
+        body: JSON.stringify({ name, email, password }),
       });
 
       if (!response.ok) {
@@ -36,7 +36,16 @@ export default function RegisterPage() {
         throw new Error(errData.detail || "Ошибка регистрации");
       }
 
-      navigate("/login");
+      const data = await response.json();
+
+      // ✅ Сохраняем токен
+      localStorage.setItem("access_token", data.access_token);
+
+      // ❗ По желанию: можешь сохранить user в context
+      // setUser(data.user);
+
+      // 🔀 Редиректим в личный кабинет / дашборд
+      navigate("/dashboard");
     } catch (err: any) {
       setError(err.message || "Ошибка сети");
     }
@@ -96,5 +105,3 @@ export default function RegisterPage() {
     </div>
   );
 }
-
-

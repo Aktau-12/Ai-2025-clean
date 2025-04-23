@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 import os
 
-# 🔄 Загружаем .env из папки app (на уровень выше текущего файла)
+# 🔄 Загружаем .env из папки app ( на уровень выше текущего файла)
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 # 🔐 JWT конфигурация
@@ -28,7 +28,7 @@ router = APIRouter()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
-# 🧾 Pydantic-модель для запроса
+# 📾 Pydantic-модель для запроса
 class UserCreate(BaseModel):
     email: str
     password: str
@@ -62,20 +62,20 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
         if not email:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="⛔ Недопустимый токен")
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="⛔️ Недопустимый токен")
     except JWTError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="⛔ Невозможно декодировать токен")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="⛔️ Невозможно декодировать токен")
 
     user = db.query(User).filter(User.email == email).first()
     if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="⛔ Пользователь не найден")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="⛔️ Пользователь не найден")
     return user
 
 # 🔐 Регистрация
 @router.post("/register")
 def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
     if db.query(User).filter(User.email == user_data.email).first():
-        raise HTTPException(status_code=400, detail="⛔ Пользователь уже существует")
+        raise HTTPException(status_code=400, detail="⛔️ Пользователь уже существует")
 
     hashed_password = get_password_hash(user_data.password)
     new_user = User(
@@ -87,14 +87,25 @@ def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    return {"message": "✅ Пользователь успешно зарегистрирован"}
+
+    # ✨ Сразу выдаём JWT-токен
+    access_token = create_access_token(data={"sub": new_user.email})
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": {
+            "id": new_user.id,
+            "email": new_user.email,
+            "name": new_user.name
+        }
+    }
 
 # 🔐 Логин
 @router.post("/login")
 def login(user_data: UserCreate, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == user_data.email).first()
     if not user or not verify_password(user_data.password, user.password_hash):
-        raise HTTPException(status_code=401, detail="⛔ Неверный логин или пароль")
+        raise HTTPException(status_code=401, detail="⛔️ Неверный логин или пароль")
 
     token = create_access_token(data={"sub": user.email})
     return {"access_token": token, "token_type": "bearer"}
