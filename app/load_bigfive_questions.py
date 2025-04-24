@@ -4,7 +4,6 @@ from sqlalchemy.orm import Session
 from app.database.db import SessionLocal
 from app.models.test import Test, Question
 
-# 📍 Путь к файлу big_five_questions.json относительно текущего файла
 FILE_PATH = os.path.join(os.path.dirname(__file__), "data", "big_five_questions.json")
 TEST_NAME = "Big Five"
 
@@ -16,7 +15,7 @@ def get_db():
         db.close()
 
 def main():
-    db = next(get_db())
+    db: Session = next(get_db())
 
     # Получаем или создаём тест Big Five
     test = db.query(Test).filter(Test.name == TEST_NAME).first()
@@ -29,12 +28,18 @@ def main():
     else:
         print(f"ℹ️ Тест '{TEST_NAME}' уже существует (ID: {test.id})")
 
-    # Удаляем старые вопросы
-    db.query(Question).filter(Question.test_id == test.id).delete()
-    db.commit()
-    print("🧹 Старые вопросы удалены")
+    # 🧹 Удаляем старые вопросы именно этого теста
+    old_questions = db.query(Question).filter(Question.test_id == test.id).all()
+    if old_questions:
+        print(f"🧹 Удаляю {len(old_questions)} старых вопросов для Big Five...")
+        for q in old_questions:
+            db.delete(q)
+        db.commit()
+        print("✅ Старые вопросы удалены.")
+    else:
+        print("ℹ️ Старые вопросы не найдены.")
 
-    # Загружаем новые вопросы с text и position
+    # 🚀 Загружаем новые вопросы
     with open(FILE_PATH, "r", encoding="utf-8") as f:
         data = json.load(f)
 
@@ -44,12 +49,12 @@ def main():
         position = item.get("position")
 
         if text and position:
-            q = Question(
+            question = Question(
                 test_id=test.id,
                 text=text,
                 position=position
             )
-            db.add(q)
+            db.add(question)
             added += 1
 
     db.commit()

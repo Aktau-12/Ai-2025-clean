@@ -11,6 +11,7 @@ class Test(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, nullable=False)
     description = Column(String, nullable=True)
+    test_type = Column(String, nullable=True)  # ✅ добавлено поле test_type
 
     # Отношение к вопросам
     questions = relationship("Question", back_populates="test")
