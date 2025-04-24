@@ -39,7 +39,7 @@ export default function RegisterPage() {
       const data = await response.json();
 
       // ✅ Сохраняем токен
-      localStorage.setItem("access_token", data.access_token);
+      localStorage.setItem("token", data.access_token);
 
       // ❗ По желанию: можешь сохранить user в context
       // setUser(data.user);

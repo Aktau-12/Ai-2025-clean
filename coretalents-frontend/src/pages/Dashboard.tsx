@@ -19,7 +19,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
+    const token = localStorage.getItem("token");
     if (!token) {
       navigate("/login");
       return;
@@ -37,7 +37,7 @@ export default function Dashboard() {
         setMbtiType(data.mbti_type || null);
       })
       .catch(() => {
-        localStorage.removeItem("access_token");
+        localStorage.removeItem("token");
         navigate("/login");
       });
 
