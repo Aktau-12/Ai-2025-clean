@@ -84,7 +84,17 @@ export default function Dashboard() {
               className="bg-white shadow-md rounded-xl p-4 flex flex-col items-center text-center hover:bg-blue-50"
             >
               <span className="text-2xl mb-2">{t.label}</span>
-              <span className="text-sm text-gray-500">{t.key === "tests" ? "Пройти психологические тесты" : t.key === "hero" ? "Ваш путь развития" : t.key === "mentor" ? "AI-наставник с советами" : t.key === "lifewheel" ? "Оценка сфер жизни" : "Дополнительный модуль"}</span>
+              <span className="text-sm text-gray-500">
+                {t.key === "tests"
+                  ? "Пройти психологические тесты"
+                  : t.key === "hero"
+                  ? "Ваш путь развития"
+                  : t.key === "mentor"
+                  ? "AI-наставник с советами"
+                  : t.key === "lifewheel"
+                  ? "Оценка сфер жизни"
+                  : "Дополнительный модуль"}
+              </span>
             </button>
           ))}
         </div>
