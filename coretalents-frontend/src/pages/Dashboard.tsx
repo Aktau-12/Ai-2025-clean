@@ -61,13 +61,13 @@ export default function Dashboard() {
     { key: "ranking", label: "🏆 Рейтинг" },
     { key: "habits", label: "💡 Привычки" },
     { key: "thinking", label: "🧠 Алгоритм мышления" },
-    { key: "lifewheel", label: "🔄 Колесо жизни" },
+    { key: "lifewheel", label: "📈 Колесо жизни" },
   ];
 
   return (
     <div className="max-w-5xl mx-auto p-6 space-y-6">
-      <h1 className="text-2xl font-bold text-center">
-        📊 Добро пожаловать, {name || email}!
+      <h1 className="text-3xl font-bold text-center text-blue-800">
+        📊 Добро пожаловать в Проект-Я, {name || email}!
       </h1>
       {email && (
         <p className="text-center text-gray-600">
@@ -76,14 +76,15 @@ export default function Dashboard() {
       )}
 
       {tab === "menu" && (
-        <div className="flex flex-wrap justify-center gap-3 border-b pb-4">
+        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 mt-6">
           {tabs.map((t) => (
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className="px-4 py-2 rounded-full text-sm font-medium bg-blue-600 text-white hover:bg-blue-700"
+              className="bg-white shadow-md rounded-xl p-4 flex flex-col items-center text-center hover:bg-blue-50"
             >
-              {t.label}
+              <span className="text-2xl mb-2">{t.label}</span>
+              <span className="text-sm text-gray-500">{t.key === "tests" ? "Пройти психологические тесты" : t.key === "hero" ? "Ваш путь развития" : t.key === "mentor" ? "AI-наставник с советами" : t.key === "lifewheel" ? "Оценка сфер жизни" : "Дополнительный модуль"}</span>
             </button>
           ))}
         </div>
@@ -118,16 +119,13 @@ export default function Dashboard() {
               <p className="text-blue-700 font-semibold">🧬 Ваш MBTI тип: {mbtiType}</p>
             </div>
           )}
-
           <h3 className="font-semibold">📜 История прохождения:</h3>
           {results.map((res, idx) => (
             <div key={idx} className="bg-gray-100 rounded p-4">
               <p className="text-sm font-medium">
                 🧪 {res.test_name} — {new Date(res.completed_at).toLocaleString()}
               </p>
-              {res.summary && (
-                <p className="text-sm text-gray-700 mt-1">{res.summary}</p>
-              )}
+              {res.summary && <p className="text-sm text-gray-700 mt-1">{res.summary}</p>}
             </div>
           ))}
           <button onClick={() => setTab("menu")} className="btn-outline">
@@ -207,7 +205,7 @@ export default function Dashboard() {
       <div className="text-center pt-8">
         <button
           onClick={() => {
-            localStorage.removeItem("access_token");
+            localStorage.removeItem("token");
             navigate("/login");
           }}
           className="bg-red-500 text-white px-4 py-2 rounded"
