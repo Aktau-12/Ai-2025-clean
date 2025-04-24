@@ -1,10 +1,10 @@
 import json
 import os
 from sqlalchemy.orm import Session
-from sqlalchemy import text
 from app.database.db import SessionLocal
 from app.models.test import Test, Question
 
+# 📍 Путь к файлу big_five_questions.json относительно текущего файла
 FILE_PATH = os.path.join(os.path.dirname(__file__), "data", "big_five_questions.json")
 TEST_NAME = "Big Five"
 
@@ -16,12 +16,12 @@ def get_db():
         db.close()
 
 def main():
-    db: Session = next(get_db())
+    db = next(get_db())
 
     # Получаем или создаём тест Big Five
     test = db.query(Test).filter(Test.name == TEST_NAME).first()
     if not test:
-        test = Test(name=TEST_NAME, description="Оценка по 5 чертам личности (Big Five)", test_type="bigfive")
+        test = Test(name=TEST_NAME, description="Оценка по 5 чертам личности (Big Five)")
         db.add(test)
         db.commit()
         db.refresh(test)
@@ -29,37 +29,27 @@ def main():
     else:
         print(f"ℹ️ Тест '{TEST_NAME}' уже существует (ID: {test.id})")
 
-    # Удаляем старые вопросы этого теста
-    old_questions = db.query(Question).filter(Question.test_id == test.id).all()
-    if old_questions:
-        print(f"🧹 Удаляю {len(old_questions)} старых вопросов для Big Five...")
-        for q in old_questions:
-            db.delete(q)
-        db.commit()
-        print("✅ Старые вопросы удалены.")
-    else:
-        print("ℹ️ Старые вопросы не найдены.")
-
-    # Сброс автоинкремента
-    db.execute(text("SELECT setval('questions_id_seq', (SELECT COALESCE(MAX(id), 1) FROM questions));"))
+    # Удаляем старые вопросы
+    db.query(Question).filter(Question.test_id == test.id).delete()
     db.commit()
+    print("🧹 Старые вопросы удалены")
 
-    # Загружаем новые вопросы
+    # Загружаем новые вопросы с text и position
     with open(FILE_PATH, "r", encoding="utf-8") as f:
         data = json.load(f)
 
     added = 0
     for item in data:
-        text_val = item.get("text")
+        text = item.get("text")
         position = item.get("position")
 
-        if text_val and position:
-            question = Question(
+        if text and position:
+            q = Question(
                 test_id=test.id,
-                text=text_val,
+                text=text,
                 position=position
             )
-            db.add(question)
+            db.add(q)
             added += 1
 
     db.commit()
