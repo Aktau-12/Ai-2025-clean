@@ -1,4 +1,3 @@
-// src/pages/Dashboard.tsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import HeroPath from "../components/HeroPath";
@@ -6,8 +5,8 @@ import Ranking from "../components/Ranking";
 import HeroProfessions from "../components/HeroProfessions";
 import HabitTracker from "./HabitTracker";
 import ThinkingAlgorithm from "../components/ThinkingAlgorithm";
+import LifeWheel from "../components/LifeWheel";
 
-// Базовый URL API из переменных окружения
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function Dashboard() {
@@ -25,7 +24,6 @@ export default function Dashboard() {
       return;
     }
 
-    // Получаем данные текущего пользователя
     fetch(`${API_URL}/users/me`, {
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -41,7 +39,6 @@ export default function Dashboard() {
         navigate("/login");
       });
 
-    // Загружаем историю результатов
     fetch(`${API_URL}/tests/my-results`, {
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -64,6 +61,7 @@ export default function Dashboard() {
     { key: "ranking", label: "🏆 Рейтинг" },
     { key: "habits", label: "💡 Привычки" },
     { key: "thinking", label: "🧠 Алгоритм мышления" },
+    { key: "lifewheel", label: "🔄 Колесо жизни" },
   ];
 
   return (
@@ -191,6 +189,15 @@ export default function Dashboard() {
       {tab === "thinking" && (
         <div>
           <ThinkingAlgorithm />
+          <button onClick={() => setTab("menu")} className="btn-outline mt-4">
+            🔙 Назад в меню
+          </button>
+        </div>
+      )}
+
+      {tab === "lifewheel" && (
+        <div>
+          <LifeWheel />
           <button onClick={() => setTab("menu")} className="btn-outline mt-4">
             🔙 Назад в меню
           </button>
