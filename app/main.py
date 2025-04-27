@@ -28,7 +28,7 @@ origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=origins,   # ✅ Разрешили твой фронтенд и бэкенд
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -40,7 +40,7 @@ from app.routes import auth, user, test, coretalents, mbti, hero, rating, habit
 # ✅ Подключение роутеров
 app.include_router(auth.router, prefix="/auth", tags=["Auth"])
 app.include_router(user.router, prefix="/users", tags=["Users"])
-app.include_router(test.router, prefix="/tests", tags=["Tests"])  # ✅ добавлено!
+app.include_router(test.router, prefix="/tests", tags=["Tests"])
 app.include_router(coretalents.router, prefix="/coretalents", tags=["CoreTalents"])
 app.include_router(mbti.router, prefix="/mbti", tags=["MBTI"])
 app.include_router(hero.router, prefix="/hero", tags=["Hero"])

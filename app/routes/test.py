@@ -10,6 +10,7 @@ from app.models.hero import UserHeroProgress
 from pydantic import BaseModel
 from datetime import datetime
 import ast
+import json  # ✅ добавил json для правильной сериализации
 
 router = APIRouter()
 
@@ -200,7 +201,7 @@ def submit_coretalents(
     result = UserResult(
         user_id=user.id,
         test_id=1,
-        answers=str(submission.answers),
+        answers=json.dumps(submission.answers),  # ✅ исправлено здесь
         score=0
     )
     db.add(result)
