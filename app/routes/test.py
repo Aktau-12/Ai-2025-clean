@@ -10,7 +10,7 @@ from app.models.hero import UserHeroProgress
 from pydantic import BaseModel
 from datetime import datetime
 import ast
-import json  # ✅ добавил json для правильной сериализации
+import json
 
 router = APIRouter()
 
@@ -59,17 +59,15 @@ def get_coretalents_results(
         .first()
     )
     if not result:
-        raise HTTPException(status_code=404, detail="Results not found")
+        raise HTTPException(status_code=404, detail="Результаты не найдены")
 
     try:
         parsed_answers = ast.literal_eval(result.answers)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Ошибка разбора результатов: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка разбора ответов: {e}")
 
+    # Возвращаем только answers, чтобы фронт корректно работал
     return {
-        "test_name": "CoreTalents 34",
-        "result_id": result.id,
-        "score": result.score,
         "answers": parsed_answers
     }
 
@@ -201,7 +199,7 @@ def submit_coretalents(
     result = UserResult(
         user_id=user.id,
         test_id=1,
-        answers=json.dumps(submission.answers),  # ✅ исправлено здесь
+        answers=json.dumps(submission.answers),
         score=0
     )
     db.add(result)
@@ -223,7 +221,7 @@ def submit_test_answers(
     result = UserResult(
         user_id=user.id,
         test_id=test_id,
-        answers=str(submission.result),
+        answers=json.dumps(submission.result),
         score=0
     )
     db.add(result)
