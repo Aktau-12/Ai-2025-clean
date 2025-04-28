@@ -1,16 +1,17 @@
 # app/models/life_wheel.py
 
-from sqlalchemy import Column, Integer, Text, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
-from app.database.base import Base
 from datetime import datetime
+from app.database.db import Base
 
-class LifeWheel(Base):
+class LifeWheelResult(Base):
     __tablename__ = "life_wheel"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    data = Column(Text, nullable=False)  # JSON данные колесо жизни
+    user_id = Column(Integer, ForeignKey("users.id"))
+    scores = Column(String, nullable=False)  # JSON-строка с оценками по сферам
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    user = relationship("User", back_populates="life_wheel_entries")
+    user = relationship("User", back_populates="life_wheel_results")
+

@@ -133,32 +133,30 @@ def get_professions_by_full_profile(user: User = Depends(get_current_user), db: 
 
     mbti_type = user.mbti_type
     archetype = user.archetype
-    coretalents = []
+    coretalents_top5 = []
     bigfive = {}
 
-    results = db.query(UserResult).filter(UserResult.user_id == user.id).all()
+    results = db.query(UserResult).filter_by(user_id=user.id).all()
     for res in results:
         try:
             data = json.loads(res.answers)
-            if res.test_id == 1:
-                if isinstance(data, dict):
-                    top_coretalents = sorted(data.items(), key=lambda x: x[1], reverse=True)[:5]
-                    coretalents = [str(talent_id) for talent_id, _ in top_coretalents]
-            elif res.test_id == 2:
-                if isinstance(data, dict):
-                    bigfive = data
+            if res.test_id == 1:  # CoreTalents
+                coretalents_top5 = sorted(data.items(), key=lambda x: x[1], reverse=True)[:5]
+                coretalents_top5 = [str(talent_id) for talent_id, _ in coretalents_top5]
+            elif res.test_id == 2:  # BigFive
+                bigfive = data
         except Exception as e:
             print(f"Ошибка парсинга ответа теста {res.test_id}:", e)
 
-    if not archetype and not mbti_type and not coretalents:
-        raise HTTPException(status_code=400, detail="Недостаточно данных для подбора профессий")
+    if not mbti_type or not archetype:
+        raise HTTPException(status_code=400, detail="Профиль пользователя неполный (MBTI или архетип)")
 
     def match_professions(user_profile, professions, limit=5):
         def score(prof):
             s = 0
-            if user_profile["archetype"] and user_profile["archetype"] in prof.get("archetypes", []):
+            if user_profile["archetype"] in prof.get("archetypes", []):
                 s += 3
-            if user_profile["mbti_type"] and user_profile["mbti_type"] in prof.get("mbti", []):
+            if user_profile["mbti_type"] in prof.get("mbti", []):
                 s += 2
             if user_profile["coretalents"]:
                 common = set(prof.get("coretalents", [])) & set(user_profile["coretalents"])
@@ -174,8 +172,9 @@ def get_professions_by_full_profile(user: User = Depends(get_current_user), db: 
     profile = {
         "mbti_type": mbti_type,
         "archetype": archetype,
-        "coretalents": coretalents,
+        "coretalents": coretalents_top5,
         "bigfive": bigfive
     }
 
     return match_professions(profile, ALL_PROFESSIONS, limit=5)
+
