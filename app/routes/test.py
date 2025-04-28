@@ -94,7 +94,7 @@ def get_my_results(user: User = Depends(get_current_user), db: Session = Depends
         top_traits = sorted(parsed.items(), key=lambda item: item[1], reverse=True)[:5]
         top_summary = []
         for trait_id, _ in top_traits:
-            talent = coretalents_data.get(str(trait_id), {}).get("title", f"Талант {trait_id}")
+            talent = coretalents_data.get(str(trait_id), {}).get("name", f"Талант {trait_id}")
             top_summary.append(talent)
         summary_text = ", ".join(top_summary)
         results.append({
