@@ -101,7 +101,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Остальные вкладки */}
+        {/* Вкладка "Мои тесты" */}
         {tab === "tests" && (
           <div className="space-y-4 mt-8 flex flex-col items-center">
             <button onClick={() => navigate("/coretalents")} className="btn-primary">
@@ -119,6 +119,7 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* Вкладка "Результаты" */}
         {tab === "results" && (
           <div className="space-y-4 mt-8">
             {mbtiType && (
@@ -128,7 +129,9 @@ export default function Dashboard() {
                   alt={mbtiType}
                   className="w-12 h-12 rounded-full border"
                 />
-                <p className="text-blue-700 font-semibold">Ваш MBTI тип: {mbtiType}</p>
+                <p className="text-blue-700 font-semibold">
+                  Ваш MBTI тип: {mbtiType}
+                </p>
               </div>
             )}
             <h3 className="font-semibold">История прохождения:</h3>
@@ -137,7 +140,9 @@ export default function Dashboard() {
                 <p className="text-sm font-medium">
                   🧪 {res.test_name} — {new Date(res.completed_at).toLocaleString()}
                 </p>
-                {res.summary && <p className="text-sm text-gray-700 mt-1">{res.summary}</p>}
+                {res.summary && (
+                  <p className="text-sm text-gray-700 mt-1">{res.summary}</p>
+                )}
 
                 {res.test_name === "CoreTalents 34" && (
                   <button
@@ -145,6 +150,24 @@ export default function Dashboard() {
                     className="btn-primary mt-2"
                   >
                     🔎 Посмотреть все 34 таланта
+                  </button>
+                )}
+
+                {res.test_name === "Big Five" && (
+                  <button
+                    onClick={() => navigate("/bigfive-results")}
+                    className="btn-primary mt-2"
+                  >
+                    🔎 Посмотреть результаты Big Five
+                  </button>
+                )}
+
+                {res.test_name === "MBTI" && (
+                  <button
+                    onClick={() => navigate("/mbti-results")}
+                    className="btn-primary mt-2"
+                  >
+                    🔎 Посмотреть результаты MBTI
                   </button>
                 )}
               </div>
@@ -155,7 +178,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Путь героя */}
+        {/* Вкладка "Путь героя" */}
         {tab === "hero" && (
           <div className="mt-8">
             <HeroPath />
@@ -165,7 +188,9 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Другие вкладки */}
+        {/* ... остальные вкладки ... */}
+
+        {/* Вкладка "AI-наставник" */}
         {tab === "mentor" && (
           <div className="space-y-2 text-center mt-8">
             <p>🎓 Персональные рекомендации:</p>
@@ -180,7 +205,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Профессии */}
+        {/* Вкладка "Профессии" */}
         {tab === "professions" && (
           <div className="mt-8">
             <HeroProfessions />
@@ -190,7 +215,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Рейтинг */}
+        {/* Вкладка "Рейтинг" */}
         {tab === "ranking" && (
           <div className="mt-8">
             <Ranking />
@@ -200,7 +225,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Привычки */}
+        {/* Вкладка "Привычки" */}
         {tab === "habits" && (
           <div className="mt-8">
             <HabitTracker />
@@ -210,7 +235,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Алгоритм мышления */}
+        {/* Вкладка "Алгоритм мышления" */}
         {tab === "thinking" && (
           <div className="mt-8">
             <ThinkingAlgorithm />
@@ -220,7 +245,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Колесо жизни */}
+        {/* Вкладка "Колесо жизни" */}
         {tab === "lifewheel" && (
           <div className="mt-8">
             <LifeWheel />
