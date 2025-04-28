@@ -28,10 +28,8 @@ export default function CoreTalentsResults() {
           },
         });
 
-        // Ожидаем, что сервер возвращает объект: { scores: { [talentId: string]: number } }
         const scores: Record<string, number> = response.data.scores || {};
 
-        // Формируем и сортируем результаты
         const sortedResults = Object.entries(scores)
           .map(([talentId, score]) => {
             const id = Number(talentId);
@@ -60,6 +58,8 @@ export default function CoreTalentsResults() {
     fetchResults();
   }, []);
 
+  const getNumbering = (index: number) => `${index + 1}.`;
+
   if (loading) {
     return <div className="p-6 text-center">Загрузка результатов...</div>;
   }
@@ -81,7 +81,7 @@ export default function CoreTalentsResults() {
             className="border p-4 rounded-lg shadow bg-white hover:shadow-lg transition"
           >
             <h3 className="text-lg font-semibold">
-              {idx + 1}. {res.name}
+              {getNumbering(idx)} {res.name}
             </h3>
             <p className="text-sm text-gray-700 mt-1">{res.description}</p>
             {res.details && (
@@ -92,54 +92,6 @@ export default function CoreTalentsResults() {
             <p className="text-sm text-gray-500 mt-2">
               Баллы: {res.score}
             </p>
-          </div>
-        ))
-      )}
-
-      <div className="text-center mt-10 space-x-4">
-        <button
-          onClick={() => navigate("/dashboard")}
-          className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition"
-        >
-          🔙 Назад в меню
-        </button>
-        <button
-          onClick={() => {
-            localStorage.removeItem("token");
-            navigate("/login");
-          }}
-          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
-        >
-          🚪 Выйти
-        </button>
-      </div>
-    </div>
-  );
-}
-
-
-  return (
-    <div className="space-y-4 p-6">
-      <h2 className="text-2xl font-bold text-center mb-6">
-        📋 Все 34 таланта CoreTalents
-      </h2>
-
-      {results.length === 0 ? (
-        <p className="text-center text-gray-500">Нет доступных результатов</p>
-      ) : (
-        results.map((res, idx) => (
-          <div
-            key={res.id}
-            className="border p-4 rounded-lg shadow bg-white hover:shadow-lg transition"
-          >
-            <h3 className="text-lg font-semibold">
-              {getNumbering(idx)} {res.name}
-            </h3>
-            <p className="text-sm text-gray-700 mt-1">{res.description}</p>
-            {res.details && (
-              <p className="text-sm text-gray-500 mt-2 italic">{res.details}</p>
-            )}
-            <p className="text-sm text-gray-500 mt-2">Баллы: {res.score}</p> {/* Отображаем баллы */}
           </div>
         ))
       )}
