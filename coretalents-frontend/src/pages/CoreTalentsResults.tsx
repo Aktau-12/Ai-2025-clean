@@ -67,7 +67,7 @@ export default function CoreTalentsResults() {
   }, []);
 
   if (loading)
-    return <div className="p-6 text-center">Loading...</div>;
+    return <div className="p-6 text-center">Загрузка результатов...</div>;
 
   const getMedal = (index: number) => {
     if (index === 0) return "🥇";
@@ -92,7 +92,7 @@ export default function CoreTalentsResults() {
             className="border p-4 rounded-lg shadow bg-white hover:shadow-lg transition"
           >
             <h3 className="text-lg font-semibold">
-              {getMedal(idx)} {res.name} <span className="text-sm text-gray-500">(Баллы: {res.score})</span>
+              {getMedal(idx)} {res.name}
             </h3>
             <p className="text-sm text-gray-700 mt-1">{res.description}</p>
             {res.details && (
