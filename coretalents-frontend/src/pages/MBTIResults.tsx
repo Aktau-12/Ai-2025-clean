@@ -14,6 +14,7 @@ interface MBTIResult {
 const MBTIResults = () => {
   const [result, setResult] = useState<MBTIResult | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -25,23 +26,20 @@ const MBTIResults = () => {
 
     const fetchResult = async () => {
       try {
-        const res = await axios.get<MBTIResult>(
-          `${API_URL}/mbti/me/result`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const res = await axios.get<MBTIResult>(`${API_URL}/mbti/me/result`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         console.log("🎯 Получен MBTI результат:", res.data);
         setResult(res.data);
       } catch (error: any) {
         console.error("❗ Ошибка загрузки результатов MBTI", error);
         if (error.response?.status === 404) {
-          alert("❗ Вы ещё не проходили MBTI тест.");
-          navigate("/mbti");
+          setError("❗ Вы ещё не проходили MBTI тест. Перенаправляем...");
+          setTimeout(() => navigate("/mbti"), 3000); // Через 3 секунды на MBTI тест
         } else {
-          alert("Произошла ошибка при загрузке данных. Попробуйте позже.");
+          setError("Произошла ошибка при загрузке данных. Попробуйте позже.");
         }
       } finally {
         setLoading(false);
@@ -52,13 +50,27 @@ const MBTIResults = () => {
   }, [navigate]);
 
   if (loading) {
-    return <div className="text-center mt-10 text-gray-600">⏳ Загрузка...</div>;
+    return <div className="text-center mt-10 text-gray-600">⏳ Загрузка результатов MBTI...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 text-center text-red-500 space-y-4">
+        <p>{error}</p>
+        <button
+          onClick={() => navigate("/dashboard")}
+          className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition"
+        >
+          🔙 Назад в меню
+        </button>
+      </div>
+    );
   }
 
   if (!result) {
     return (
-      <div className="text-center mt-10 text-red-600">
-        ⚠️ Результаты MBTI не найдены.
+      <div className="p-6 text-center text-gray-500">
+        Нет данных для отображения результатов MBTI.
       </div>
     );
   }
@@ -86,10 +98,6 @@ const MBTIResults = () => {
         — {result.description}
       </h3>
 
-      <p className="text-gray-700 text-lg leading-relaxed whitespace-pre-line">
-        {result.description}
-      </p>
-
       {result.extended_description && (
         <div className="mt-6 text-left border-t pt-4">
           <h4 className="text-lg font-semibold mb-2 text-gray-800">📖 Подробнее о вас:</h4>
@@ -113,15 +121,16 @@ const MBTIResults = () => {
       )}
 
       <button
-        onClick={() => navigate("/dashboard")}
+        onClick={() => {
+          localStorage.clear();
+          navigate("/dashboard");
+        }}
         className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded-lg shadow transition"
       >
-        🔙 Выйти в меню
+        🔙 В меню
       </button>
     </div>
   );
 };
 
 export default MBTIResults;
-
-

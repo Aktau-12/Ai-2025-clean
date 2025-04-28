@@ -11,7 +11,7 @@ from pydantic import BaseModel
 import json
 import os
 
-router = APIRouter(tags=["Hero"])  # ✅ без prefix
+router = APIRouter(tags=["Hero"])
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 HERO_STEPS_PATH = os.path.join(BASE_DIR, "data", "hero_steps.json")
@@ -125,33 +125,40 @@ def get_full_hero_path(user: User = Depends(get_current_user), db: Session = Dep
 
     return {"stages": enriched_steps}
 
+# ✅ Исправленная версия /professions
 @router.get("/professions")
 def get_professions_by_full_profile(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=401, detail="Пользователь не найден")
 
     mbti_type = user.mbti_type
-    archetype = user.archetype  # ✔️ исправлено
+    archetype = user.archetype
     coretalents = []
     bigfive = {}
 
-    results = db.query(UserResult).filter_by(user_id=user.id).all()
+    results = db.query(UserResult).filter(UserResult.user_id == user.id).all()
     for res in results:
         try:
             data = json.loads(res.answers)
             if res.test_id == 1:
-                coretalents = data.get("top", [])
+                if isinstance(data, dict):
+                    top_coretalents = sorted(data.items(), key=lambda x: x[1], reverse=True)[:5]
+                    coretalents = [str(talent_id) for talent_id, _ in top_coretalents]
             elif res.test_id == 2:
-                bigfive = data.get("scores", {})
+                if isinstance(data, dict):
+                    bigfive = data
         except Exception as e:
             print(f"Ошибка парсинга ответа теста {res.test_id}:", e)
+
+    if not archetype and not mbti_type and not coretalents:
+        raise HTTPException(status_code=400, detail="Недостаточно данных для подбора профессий")
 
     def match_professions(user_profile, professions, limit=5):
         def score(prof):
             s = 0
-            if user_profile["archetype"] in prof.get("archetypes", []):
+            if user_profile["archetype"] and user_profile["archetype"] in prof.get("archetypes", []):
                 s += 3
-            if user_profile["mbti_type"] in prof.get("mbti", []):
+            if user_profile["mbti_type"] and user_profile["mbti_type"] in prof.get("mbti", []):
                 s += 2
             if user_profile["coretalents"]:
                 common = set(prof.get("coretalents", [])) & set(user_profile["coretalents"])
