@@ -2,8 +2,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import AddHabitModal from "@/components/AddHabitModal"; // ✅ модалка добавления
-import HabitProgress from "@/components/HabitProgress"; // ✅ прогресс по дням недели
+import AddHabitModal from "@/components/AddHabitModal";
+import HabitProgress from "@/components/HabitProgress";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -17,9 +17,10 @@ interface Habit {
   week_log: boolean[];
 }
 
-const HabitTracker = () => {
+export default function HabitTracker() {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   const fetchHabits = async () => {
@@ -31,6 +32,8 @@ const HabitTracker = () => {
       setHabits(res.data);
     } catch (err) {
       console.error("Ошибка при загрузке привычек:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -42,7 +45,13 @@ const HabitTracker = () => {
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      fetchHabits();
+      setHabits((prev) =>
+        prev.map((habit) =>
+          habit.id === habitId
+            ? { ...habit, done_today: true, streak: habit.streak + 1 }
+            : habit
+        )
+      );
     } catch (err) {
       console.error("Ошибка при отметке привычки:", err);
     }
@@ -53,31 +62,31 @@ const HabitTracker = () => {
   }, []);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
+    <div className="max-w-6xl mx-auto px-4 py-8">
       {/* 🔝 Заголовок + кнопка назад */}
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">🧠 Мои привычки</h2>
+        <h2 className="text-3xl font-bold text-blue-800">🔄 Трекер привычек</h2>
         <button
           onClick={() => navigate("/dashboard")}
           className="text-sm text-blue-600 hover:underline"
         >
-          🔙 Назад в меню
+          🔙 В меню
         </button>
       </div>
 
-      {/* 🔁 Модель привычки */}
-      <div className="mb-10 bg-[#f8f4ec] rounded-2xl p-6 shadow">
-        <h3 className="text-xl font-semibold mb-4">🔁 Цикл формирования привычки</h3>
+      {/* 🔁 Модель формирования привычки */}
+      <div className="mb-10 bg-[#f3f4f6] rounded-2xl p-6 shadow">
+        <h3 className="text-xl font-semibold mb-4">🔁 Как формируются привычки?</h3>
         <div className="flex flex-col md:flex-row items-center gap-6">
           <img
             src="/habit-model.jpeg"
             alt="Цикл привычки"
-            className="w-full md:w-1/2 max-h-[320px] object-contain rounded-xl"
+            className="w-full md:w-1/2 max-h-[300px] object-cover rounded-xl"
           />
-          <ul className="text-sm text-gray-700 leading-relaxed space-y-2">
-            <li>1️⃣ <b>Напоминание</b>: триггер, запускающий привычку.</li>
-            <li>2️⃣ <b>Действие</b>: выполнение привычки.</li>
-            <li>3️⃣ <b>Награда</b>: XP, чувство победы, рост.</li>
+          <ul className="text-gray-700 text-sm leading-relaxed space-y-2">
+            <li>1️⃣ <b>Триггер</b> — напоминание о действии.</li>
+            <li>2️⃣ <b>Действие</b> — сама привычка.</li>
+            <li>3️⃣ <b>Награда</b> — радость, XP и прогресс.</li>
           </ul>
         </div>
       </div>
@@ -86,46 +95,55 @@ const HabitTracker = () => {
       <div className="text-right mb-6">
         <button
           onClick={() => setModalOpen(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg"
+          className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-5 py-2 rounded-lg transition"
         >
-          ➕ Добавить привычку
+          ➕ Добавить новую привычку
         </button>
       </div>
 
       {/* 🧱 Список привычек */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        {habits.map((habit) => (
-          <div
-            key={habit.id}
-            className="bg-white rounded-xl shadow p-4 flex flex-col items-center text-center"
-          >
-            <img
-              src={habit.image_url || "/default-habit.jpg"}
-              alt={habit.title}
-              className="w-full h-36 object-cover rounded-lg mb-3"
-            />
-            <h4 className="font-semibold text-lg">{habit.title}</h4>
-            <p className="text-sm text-gray-600 mt-1">
-              🔥 Счётчик: <b>{habit.streak}</b> дней подряд
-            </p>
-
-            {/* ✅ Визуализация прогресса недели */}
-            <HabitProgress weekLog={habit.week_log || []} />
-
-            <button
-              onClick={() => markAsDone(habit.id)}
-              disabled={habit.done_today}
-              className={`mt-4 px-4 py-2 text-sm font-medium rounded-lg transition ${
-                habit.done_today
-                  ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                  : "bg-green-500 text-white hover:bg-green-600"
-              }`}
+      {loading ? (
+        <p className="text-gray-500 text-center">⏳ Загрузка привычек...</p>
+      ) : habits.length === 0 ? (
+        <div className="text-center text-gray-600 mt-10">
+          <p>У вас пока нет привычек 😔</p>
+          <p>Добавьте первую привычку для старта роста!</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          {habits.map((habit) => (
+            <div
+              key={habit.id}
+              className="bg-white rounded-xl shadow p-5 flex flex-col items-center text-center hover:shadow-lg transition"
             >
-              {habit.done_today ? "✅ Сегодня выполнено" : "✔ Сделано сегодня"}
-            </button>
-          </div>
-        ))}
-      </div>
+              <img
+                src={habit.image_url || "/default-habit.jpg"}
+                alt={habit.title}
+                className="w-full h-36 object-cover rounded-lg mb-4"
+              />
+              <h4 className="font-bold text-lg text-blue-700">{habit.title}</h4>
+              <p className="text-sm text-gray-600 mt-1">
+                🔥 Серия: <b>{habit.streak}</b> дней
+              </p>
+
+              {/* ✅ Прогресс по неделе */}
+              <HabitProgress weekLog={habit.week_log || []} />
+
+              <button
+                onClick={() => markAsDone(habit.id)}
+                disabled={habit.done_today}
+                className={`mt-4 w-full px-4 py-2 rounded-lg font-semibold transition ${
+                  habit.done_today
+                    ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                    : "bg-green-500 hover:bg-green-600 text-white"
+                }`}
+              >
+                {habit.done_today ? "✅ Выполнено сегодня" : "✔ Отметить выполнение"}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* 🪄 Модальное окно */}
       <AddHabitModal
@@ -135,8 +153,4 @@ const HabitTracker = () => {
       />
     </div>
   );
-};
-
-export default HabitTracker;
-
-
+}
