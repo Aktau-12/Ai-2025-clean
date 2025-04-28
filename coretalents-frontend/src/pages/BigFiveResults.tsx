@@ -1,5 +1,5 @@
 // src/pages/BigFiveResults.tsx
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Radar,
   RadarChart,
@@ -10,17 +10,19 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 type BigFiveData = {
   [K in "O" | "C" | "E" | "A" | "N"]?: number;
 };
 
-interface Props {
-  data: BigFiveData;
-}
-
-export default function BigFiveResults({ data }: Props) {
+export default function BigFiveResults() {
+  const [data, setData] = useState<BigFiveData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  const API_URL = import.meta.env.VITE_API_URL;
 
   const traitLabels: Record<keyof BigFiveData, string> = {
     O: "Открытость опыту",
@@ -31,28 +33,65 @@ export default function BigFiveResults({ data }: Props) {
   };
 
   const traitDescriptions: Record<keyof BigFiveData, string> = {
-    O: "Ты склонен к любопытству, гибкости мышления и богатому воображению. Люди с высокой открытостью стремятся исследовать новое — идеи, эмоции, искусства. Ты видишь глубину в обычных вещах и способен мыслить вне рамок. Такая черта позволяет тебе быть источником вдохновения и генератором перемен.",
-    C: "Ты организован, ответственен и внимателен к деталям. Такая черта часто связана с высокой самодисциплиной и стремлением к достижению целей. Ты не бросаешь начатое на полпути и умеешь справляться с долгосрочными задачами, не теряя фокуса.",
-    E: "Ты черпаешь энергию из общения и активного взаимодействия с другими. Экстраверты склонны быть яркими, оптимистичными и инициативными. Ты любишь быть в центре событий и чувствуешь себя живым, когда делишься эмоциями с окружающими.",
-    A: "Ты стремишься к гармонии и доверительным отношениям. С тобой легко, ты умеешь слушать и поддерживать. Люди с развитой доброжелательностью ценят сотрудничество и заботу, умеют гасить конфликты и создавать атмосферу безопасности.",
-    N: "Ты глубоко переживаешь всё, что происходит. Иногда это делает тебя более уязвимым к стрессу, но с другой стороны — ты обладаешь редкой эмпатией. Твоя чувствительность может быть источником искренности, интуиции и художественного восприятия мира.",
+    O: "Ты склонен к любопытству, гибкости мышления и богатому воображению...",
+    C: "Ты организован, ответственен и внимателен к деталям...",
+    E: "Ты черпаешь энергию из общения и активного взаимодействия...",
+    A: "Ты стремишься к гармонии и доверительным отношениям...",
+    N: "Ты глубоко переживаешь всё, что происходит...",
   };
 
-  // Если нет валидных числовых данных — сообщаем об этом
-  if (
-    !data ||
-    typeof data !== "object" ||
-    Array.isArray(data) ||
-    Object.keys(data).length === 0
-  ) {
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const response = await axios.get(`${API_URL}/tests/2/result`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+
+        if (!response.data || Object.keys(response.data).length === 0) {
+          setError("Результаты Big Five отсутствуют. Пожалуйста, пройдите тест.");
+          return;
+        }
+
+        setData(response.data);
+      } catch (err: any) {
+        console.error("❌ Ошибка загрузки Big Five:", err.response?.data || err.message);
+        setError("Ошибка загрузки результатов. Попробуйте позже.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return <div className="p-6 text-center">⏳ Загрузка результатов Big Five...</div>;
+  }
+
+  if (error) {
     return (
-      <p className="text-red-500">
-        Нет данных для визуализации Big Five.
-      </p>
+      <div className="p-6 text-center text-red-500 space-y-4">
+        <p>{error}</p>
+        <button
+          onClick={() => navigate("/dashboard")}
+          className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition"
+        >
+          🔙 Назад в меню
+        </button>
+      </div>
     );
   }
 
-  // Подготавливаем данные для графика
+  if (!data) {
+    return (
+      <div className="p-6 text-center text-gray-500">
+        Нет данных для отображения.
+      </div>
+    );
+  }
+
   const chartData = (Object.keys(data) as (keyof BigFiveData)[])
     .filter((t) => typeof data[t] === "number" && !isNaN(data[t]!))
     .map((trait) => ({
@@ -67,7 +106,7 @@ export default function BigFiveResults({ data }: Props) {
     <div className="mt-6 space-y-10">
       <div>
         <h3 className="text-lg font-semibold mb-4">
-          🔍 Визуализация результатов
+          🔍 Визуализация результатов Big Five
         </h3>
         <ResponsiveContainer width="100%" height={400}>
           <RadarChart
@@ -112,7 +151,10 @@ export default function BigFiveResults({ data }: Props) {
 
       <div className="text-center">
         <button
-          onClick={() => navigate("/dashboard")}
+          onClick={() => {
+            localStorage.clear();
+            navigate("/dashboard");
+          }}
           className="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded-lg shadow transition"
         >
           🔙 В меню
@@ -121,5 +163,3 @@ export default function BigFiveResults({ data }: Props) {
     </div>
   );
 }
-
-
