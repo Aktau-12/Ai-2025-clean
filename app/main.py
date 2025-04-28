@@ -29,7 +29,7 @@ app.add_middleware(
 )
 
 # 📦 Импорт роутов
-from app.routes import auth, user, test, coretalents, mbti, hero, rating, habit
+from app.routes import auth, user, test, coretalents, mbti, hero, rating, habit, thinking_algorithm, life_wheel
 
 # ✅ Подключение роутеров
 app.include_router(auth.router, prefix="/auth", tags=["Auth"])
@@ -40,6 +40,8 @@ app.include_router(mbti.router, prefix="/mbti", tags=["MBTI"])
 app.include_router(hero.router, prefix="/hero", tags=["Hero"])
 app.include_router(rating.router, prefix="/rating", tags=["Rating"])
 app.include_router(habit.router, prefix="/habits", tags=["Habits"])
+app.include_router(thinking_algorithm.router, prefix="/thinking", tags=["Thinking Algorithm"])
+app.include_router(life_wheel.router, prefix="/life-wheel", tags=["Life Wheel"])  # ✅ добавлено!
 
 # ── Поддержка GET и HEAD для корневого пути ─────────────────
 @app.api_route("/", methods=["GET", "HEAD"])
