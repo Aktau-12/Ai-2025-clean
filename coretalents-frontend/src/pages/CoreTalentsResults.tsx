@@ -69,11 +69,7 @@ export default function CoreTalentsResults() {
   if (loading)
     return <div className="p-6 text-center">Загрузка результатов...</div>;
 
-  const getMedal = (index: number) => {
-    if (index === 0) return "🥇";
-    if (index === 1) return "🥈";
-    if (index === 2) return "🥉";
-    if (index === 3 || index === 4) return "🎖️";
+  const getNumbering = (index: number) => {
     return `${index + 1}.`;
   };
 
@@ -92,7 +88,7 @@ export default function CoreTalentsResults() {
             className="border p-4 rounded-lg shadow bg-white hover:shadow-lg transition"
           >
             <h3 className="text-lg font-semibold">
-              {getMedal(idx)} {res.name}
+              {getNumbering(idx)} {res.name}
             </h3>
             <p className="text-sm text-gray-700 mt-1">{res.description}</p>
             {res.details && (
