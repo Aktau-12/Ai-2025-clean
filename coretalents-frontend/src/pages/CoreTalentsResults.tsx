@@ -1,11 +1,10 @@
 // src/pages/CoreTalentsResults.tsx
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import talentsData from "../data/coretalents_results_data.json"; // ✅ вернули как было
+import talentsData from "../data/coretalents_results_data.json";
 import rawMapping from "../data/coretalents_question_mapping.json";
 import { useNavigate } from "react-router-dom";
 
-// Базовый URL API из переменных окружения
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function CoreTalentsResults() {
@@ -13,7 +12,6 @@ export default function CoreTalentsResults() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Маппинг: question_id -> talent_id
   const mapping: Record<number, number> = {};
   rawMapping.forEach((item) => {
     mapping[item.question_id] = item.talent_id;
@@ -69,7 +67,15 @@ export default function CoreTalentsResults() {
   }, []);
 
   if (loading)
-    return <div className="p-6 text-center">Загрузка результатов...</div>;
+    return <div className="p-6 text-center">Loading...</div>;
+
+  const getMedal = (index: number) => {
+    if (index === 0) return "🥇";
+    if (index === 1) return "🥈";
+    if (index === 2) return "🥉";
+    if (index === 3 || index === 4) return "🎖️";
+    return `${index + 1}.`;
+  };
 
   return (
     <div className="space-y-4 p-6">
@@ -83,10 +89,10 @@ export default function CoreTalentsResults() {
         results.map((res, idx) => (
           <div
             key={res.id}
-            className={`border p-4 rounded-lg shadow bg-white hover:shadow-lg transition ${idx < 5 ? "bg-yellow-100" : ""}`}
+            className="border p-4 rounded-lg shadow bg-white hover:shadow-lg transition"
           >
             <h3 className="text-lg font-semibold">
-              {idx + 1}. {res.name} <span className="text-sm text-gray-500">(Баллы: {res.score})</span>
+              {getMedal(idx)} {res.name} <span className="text-sm text-gray-500">(Баллы: {res.score})</span>
             </h3>
             <p className="text-sm text-gray-700 mt-1">{res.description}</p>
             {res.details && (
