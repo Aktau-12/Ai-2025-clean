@@ -2,14 +2,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from pathlib import Path
-import os
 import subprocess
 
 # ✅ Загружаем .env до любых операций с переменными окружения
 load_dotenv(Path(__file__).resolve().parent / ".env")
 
 # ✅ Выполняем alembic upgrade после загрузки .env
-subprocess.run(["alembic", "upgrade", "head"])
+subprocess.run(["alembic", "upgrade", "head"], check=True)
 
 print("✅ MAIN.PY ЗАПУЩЕН")
 
@@ -28,7 +27,8 @@ origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,   # ✅ Разрешили твой фронтенд и бэкенд
+    allow_origins=origins,  # ✅ Разрешили фронтенд и бэкенд
+    allow_origin_regex="https://.*\\.onrender\\.com",  # ✅ wildcard для любых поддоменов render.com
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
