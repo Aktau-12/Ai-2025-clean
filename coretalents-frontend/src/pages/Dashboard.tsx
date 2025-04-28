@@ -24,31 +24,30 @@ export default function Dashboard() {
       return;
     }
 
-    fetch(`${API_URL}/users/me`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then(async (res) => {
-        if (!res.ok) throw new Error("Не удалось получить пользователя");
-        const data = await res.json();
-        setEmail(data.email);
-        setName(data.name || data.email);
-        setMbtiType(data.mbti_type || null);
+    Promise.all([
+      fetch(`${API_URL}/users/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+      fetch(`${API_URL}/tests/my-results`, {
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+    ])
+      .then(async ([userRes, resultsRes]) => {
+        if (!userRes.ok) throw new Error("Не удалось получить пользователя");
+        if (!resultsRes.ok) throw new Error("Ошибка загрузки результатов");
+
+        const userData = await userRes.json();
+        const resultsData = await resultsRes.json();
+
+        setEmail(userData.email);
+        setName(userData.name || userData.email);
+        setMbtiType(userData.mbti_type || null);
+        setResults(resultsData);
       })
-      .catch(() => {
+      .catch((error) => {
+        console.error(error);
         localStorage.removeItem("token");
         navigate("/login");
-      });
-
-    fetch(`${API_URL}/tests/my-results`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then(async (res) => {
-        if (!res.ok) throw new Error("Ошибка загрузки результатов");
-        const data = await res.json();
-        setResults(data);
-      })
-      .catch((err) => {
-        console.error(err);
       });
   }, [navigate]);
 
@@ -101,7 +100,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Вкладка "Мои тесты" */}
+        {/* Вкладки */}
         {tab === "tests" && (
           <div className="space-y-4 mt-8 flex flex-col items-center">
             <button onClick={() => navigate("/coretalents")} className="btn-primary">
@@ -119,7 +118,6 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Вкладка "Результаты" */}
         {tab === "results" && (
           <div className="space-y-4 mt-8">
             {mbtiType && (
@@ -143,7 +141,6 @@ export default function Dashboard() {
                 {res.summary && (
                   <p className="text-sm text-gray-700 mt-1">{res.summary}</p>
                 )}
-
                 {res.test_name === "CoreTalents 34" && (
                   <button
                     onClick={() => navigate("/coretalents-results")}
@@ -152,7 +149,6 @@ export default function Dashboard() {
                     🔎 Посмотреть все 34 таланта
                   </button>
                 )}
-
                 {res.test_name === "Big Five" && (
                   <button
                     onClick={() => navigate("/bigfive-results")}
@@ -161,7 +157,6 @@ export default function Dashboard() {
                     🔎 Посмотреть результаты Big Five
                   </button>
                 )}
-
                 {res.test_name === "MBTI" && (
                   <button
                     onClick={() => navigate("/mbti-results")}
@@ -178,7 +173,6 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Вкладка "Путь героя" */}
         {tab === "hero" && (
           <div className="mt-8">
             <HeroPath />
@@ -188,24 +182,6 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* ... остальные вкладки ... */}
-
-        {/* Вкладка "AI-наставник" */}
-        {tab === "mentor" && (
-          <div className="space-y-2 text-center mt-8">
-            <p>🎓 Персональные рекомендации:</p>
-            <ul className="list-disc list-inside text-left inline-block">
-              <li>Записывай идеи каждый день.</li>
-              <li>Сфокусируйся на одном проекте хотя бы на неделю.</li>
-              <li>Сделай первые 3 шага — это заложит фундамент.</li>
-            </ul>
-            <button onClick={() => setTab("menu")} className="btn-outline mt-4">
-              🔙 Назад в меню
-            </button>
-          </div>
-        )}
-
-        {/* Вкладка "Профессии" */}
         {tab === "professions" && (
           <div className="mt-8">
             <HeroProfessions />
@@ -215,7 +191,6 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Вкладка "Рейтинг" */}
         {tab === "ranking" && (
           <div className="mt-8">
             <Ranking />
@@ -225,7 +200,6 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Вкладка "Привычки" */}
         {tab === "habits" && (
           <div className="mt-8">
             <HabitTracker />
@@ -235,7 +209,6 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Вкладка "Алгоритм мышления" */}
         {tab === "thinking" && (
           <div className="mt-8">
             <ThinkingAlgorithm />
@@ -245,7 +218,6 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Вкладка "Колесо жизни" */}
         {tab === "lifewheel" && (
           <div className="mt-8">
             <LifeWheel />
@@ -255,7 +227,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Выход */}
+        {/* Кнопка выхода */}
         <div className="text-center pt-12">
           <button
             onClick={() => {

@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import List, Optional
 
-router = APIRouter(tags=["Habits"])
+router = APIRouter(prefix="/habits", tags=["Habits"])  # ✅ добавил префикс
 
 def get_db():
     db = SessionLocal()
@@ -20,7 +20,7 @@ def get_db():
 # 📦 Модель для создания привычки пользователем
 class UserHabitCreate(BaseModel):
     habit_id: int
-    days: List[int]  # 0 (пн) — 6 (вс)
+    days: List[int]
 
 # 📦 Модель создания новой привычки в систему
 class HabitCreate(BaseModel):
@@ -30,7 +30,7 @@ class HabitCreate(BaseModel):
     description: Optional[str] = None
 
 # 🔹 Получить все шаблоны привычек
-@router.get("/habits", response_model=List[dict])
+@router.get("/", response_model=List[dict])
 def get_all_habits(db: Session = Depends(get_db)):
     habits = db.query(Habit).all()
     return [
@@ -45,7 +45,7 @@ def get_all_habits(db: Session = Depends(get_db)):
     ]
 
 # 🔹 Добавить новую привычку (шаблон — для админа)
-@router.post("/habits", status_code=201)
+@router.post("/", status_code=201)
 def create_habit(habit: HabitCreate, db: Session = Depends(get_db)):
     new = Habit(**habit.dict())
     db.add(new)
@@ -54,7 +54,7 @@ def create_habit(habit: HabitCreate, db: Session = Depends(get_db)):
     return {"id": new.id, "message": "🆕 Привычка добавлена"}
 
 # 🔸 Добавить привычку пользователю
-@router.post("/my-habits", status_code=201)
+@router.post("/my", status_code=201)
 def add_user_habit(
     habit_data: UserHabitCreate,
     db: Session = Depends(get_db),
@@ -63,6 +63,10 @@ def add_user_habit(
     habit = db.query(Habit).filter(Habit.id == habit_data.habit_id).first()
     if not habit:
         raise HTTPException(status_code=404, detail="Привычка не найдена")
+
+    existing = db.query(UserHabit).filter_by(user_id=user.id, habit_id=habit.id).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Эта привычка уже добавлена")
 
     user_habit = UserHabit(
         user_id=user.id,
@@ -75,7 +79,7 @@ def add_user_habit(
     return {"message": "✅ Привычка добавлена пользователю"}
 
 # 🔹 Получить привычки пользователя
-@router.get("/my-habits", response_model=List[dict])
+@router.get("/my", response_model=List[dict])
 def get_user_habits(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user)
@@ -99,7 +103,7 @@ def get_user_habits(
     ]
 
 # 🔘 Отметить привычку как выполненную сегодня
-@router.post("/my-habits/{habit_id}/check")
+@router.post("/my/{habit_id}/check")
 def check_habit_done(
     habit_id: int,
     db: Session = Depends(get_db),

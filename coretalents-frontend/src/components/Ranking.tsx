@@ -1,8 +1,8 @@
-// Ranking.tsx
+// src/pages/Ranking.tsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-const API_URL = import.meta.env.VITE_API_URL;
 
+const API_URL = import.meta.env.VITE_API_URL;
 
 type RankedUser = {
   user_id: number;
@@ -18,7 +18,6 @@ export default function Ranking() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    console.log("📦 JWT:", token);
 
     if (!token) {
       setError("Вы не авторизованы");
@@ -27,7 +26,7 @@ export default function Ranking() {
       return;
     }
 
-    fetch("${API_URL}/rating/", {
+    fetch(`${API_URL}/rating/`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -45,11 +44,11 @@ export default function Ranking() {
           throw new Error(`Ошибка: ${res.status}`);
         }
         const data = await res.json();
-        console.log("🎯 Полученные данные:", data);
+        console.log("🎯 Полученные данные рейтинга:", data);
         setRanking(data);
       })
       .catch((err) => {
-        console.error("Ошибка загрузки:", err);
+        console.error("Ошибка загрузки рейтинга:", err);
         setError("Не удалось загрузить рейтинг. Возможно, вы не авторизованы.");
       })
       .finally(() => setLoading(false));
@@ -65,7 +64,7 @@ export default function Ranking() {
       {!loading && !error && (
         <ul className="space-y-3">
           {ranking.length === 0 ? (
-            <p className="text-gray-500 text-center">Нет данных</p>
+            <p className="text-gray-500 text-center">Нет данных для отображения.</p>
           ) : (
             ranking.map((user, index) => (
               <li
@@ -95,5 +94,3 @@ export default function Ranking() {
     </div>
   );
 }
-
-

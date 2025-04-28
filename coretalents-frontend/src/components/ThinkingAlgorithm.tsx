@@ -1,54 +1,28 @@
 import React, { useState } from "react";
-import HabitTracker from "../pages/HabitTracker"; // ✅ если HabitTracker лежит в pages
-const API_URL = import.meta.env.VITE_API_URL;
-
+import HabitTracker from "../pages/HabitTracker";
 
 const steps = [
-  {
-    question: "🧠 Какая у тебя сейчас задача или проблема?",
-    placeholder: "Опиши кратко, в 1-2 предложениях",
-  },
-  {
-    question: "🔍 Что ты уже пробовал сделать?",
-    placeholder: "Например: советовался с кем-то, искал в интернете, пробовал решить",
-  },
-  {
-    question: "🎯 Какая твоя конечная цель?",
-    placeholder: "Например: найти решение, устранить причину, добиться результата",
-  },
-  {
-    question: "🧩 Какие ресурсы у тебя есть?",
-    placeholder: "Люди, знания, время, опыт, инструменты",
-  },
-  {
-    question: "🚧 Какие у тебя ограничения?",
-    placeholder: "Например: мало времени, нет поддержки, страх неудачи",
-  },
-  {
-    question: "💡 Какие есть хотя бы 3 возможных пути?",
-    placeholder: "Придумай любые 3 варианта действий",
-  },
-  {
-    question: "✅ Какой вариант ты выберешь сейчас?",
-    placeholder: "Напиши тот, что тебе ближе — интуитивно или логически",
-  },
-  {
-    question: "📅 Когда ты начнёшь? Установи дату и время",
-    placeholder: "Например: завтра в 10:00 или 'после обеда в пятницу'",
-  },
-  {
-    question: "🔁 Добавить в привычку? Чтобы делать это регулярно?",
-    placeholder: "Да/Нет. Можно будет сразу внести в HabitTracker",
-  },
+  { question: "🧠 Какая у тебя сейчас задача или проблема?", placeholder: "Опиши кратко" },
+  { question: "🔍 Что ты уже пробовал сделать?", placeholder: "Опиши кратко" },
+  { question: "🎯 Какая твоя конечная цель?", placeholder: "Опиши" },
+  { question: "🧩 Какие ресурсы у тебя есть?", placeholder: "Люди, знания, опыт" },
+  { question: "🚧 Какие ограничения?", placeholder: "Страхи, нехватка времени" },
+  { question: "💡 Минимум 3 возможных пути?", placeholder: "Три варианта" },
+  { question: "✅ Какой вариант выбираешь?", placeholder: "Выбери лучший" },
+  { question: "📅 Когда начнёшь?", placeholder: "Дата и время" },
 ];
 
 const ThinkingAlgorithm = () => {
   const [stepIndex, setStepIndex] = useState(0);
   const [answers, setAnswers] = useState<string[]>(Array(steps.length).fill(""));
+  const [finished, setFinished] = useState(false);
+  const [addHabit, setAddHabit] = useState(false);
 
   const handleNext = () => {
     if (stepIndex < steps.length - 1) {
       setStepIndex((prev) => prev + 1);
+    } else {
+      setFinished(true);
     }
   };
 
@@ -64,10 +38,38 @@ const ThinkingAlgorithm = () => {
     setAnswers(newAnswers);
   };
 
-  const isLastStep = stepIndex === steps.length - 1;
+  if (finished) {
+    return (
+      <div className="bg-white rounded-xl shadow p-6 space-y-6 text-center">
+        <h2 className="text-2xl font-bold text-green-600 mb-4">🎉 Поздравляем! Вы завершили алгоритм мышления!</h2>
+        <div className="text-left space-y-3">
+          {steps.map((step, idx) => (
+            <div key={idx} className="border-b pb-2">
+              <p className="font-semibold">{step.question}</p>
+              <p className="text-gray-700">{answers[idx] || "Не заполнено"}</p>
+            </div>
+          ))}
+        </div>
+
+        {!addHabit ? (
+          <button
+            onClick={() => setAddHabit(true)}
+            className="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded-lg shadow transition"
+          >
+            🔄 Добавить как привычку
+          </button>
+        ) : (
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold mb-4">🧩 Добавление в привычки:</h3>
+            <HabitTracker />
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-white rounded-xl shadow p-6 space-y-4">
+    <div className="bg-white rounded-xl shadow p-6 space-y-6">
       <h2 className="text-xl font-bold text-center mb-4">🧠 Алгоритм мышления</h2>
 
       <div>
@@ -89,34 +91,15 @@ const ThinkingAlgorithm = () => {
         >
           ⬅ Назад
         </button>
-        {!isLastStep ? (
-          <button
-            onClick={handleNext}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Далее ➡
-          </button>
-        ) : (
-          <button
-            onClick={() => alert("🎉 Готово! Все шаги пройдены.")}
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-          >
-            Завершить ✅
-          </button>
-        )}
+        <button
+          onClick={handleNext}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          {stepIndex === steps.length - 1 ? "Завершить ✅" : "Далее ➡"}
+        </button>
       </div>
-
-      {/* Можно добавить HabitTracker по желанию */}
-      {answers[8]?.toLowerCase().includes("да") && (
-        <div className="mt-8">
-          <h3 className="text-md font-semibold mb-2">🔁 Добавлено в блок Привычки:</h3>
-          <HabitTracker />
-        </div>
-      )}
     </div>
   );
 };
 
 export default ThinkingAlgorithm;
-
-
