@@ -69,14 +69,13 @@ def get_coretalents_results(
 
     return {"answers": parsed_answers}
 
-# Загрузим coretalents_results_data_full.json и преобразуем в словарь { "id": {...} }
+# Загрузка coretalents_results_data_full.json
 coretalents_data = {}
 coretalents_path = Path(__file__).resolve().parent.parent / "data" / "coretalents_results_data_full.json"
 if coretalents_path.exists():
     raw = json.loads(coretalents_path.read_text(encoding="utf-8"))
-    # если JSON — список, то преобразуем в dict по ключу "id"
     if isinstance(raw, list):
-        coretalents_data = { str(item["id"]): item for item in raw }
+        coretalents_data = {str(item["id"]): item for item in raw}
     else:
         coretalents_data = raw
 
@@ -93,9 +92,7 @@ def get_my_results(user: User = Depends(get_current_user), db: Session = Depends
     )
     if core:
         parsed = ast.literal_eval(core.answers)
-        # Топ-5 по баллам
         top_traits = sorted(parsed.items(), key=lambda x: x[1], reverse=True)[:5]
-        # Собираем названия талантов из справочника
         summary_list = []
         for trait_id, _ in top_traits:
             entry = coretalents_data.get(str(trait_id), {})
@@ -112,7 +109,7 @@ def get_my_results(user: User = Depends(get_current_user), db: Session = Depends
             "summary": f"Топ 5 талантов: {summary_text}"
         })
 
-    # Big Five (с описанием)
+    # Big Five
     bigfive = (
         db.query(UserResult)
         .filter(UserResult.user_id == user.id, UserResult.test_id == 2)

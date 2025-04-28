@@ -31,9 +31,7 @@ export default function CoreTalentsResults() {
         const parsed = res.data.answers || {};
 
         const validAnswers = Object.entries(parsed)
-          .filter(([questionId]) =>
-            mapping.hasOwnProperty(Number(questionId))
-          )
+          .filter(([questionId]) => mapping.hasOwnProperty(Number(questionId)))
           .map(([questionId, answer]) => ({
             question_id: Number(questionId),
             answer: Number(answer),
@@ -52,8 +50,7 @@ export default function CoreTalentsResults() {
             return {
               id,
               name: talent?.name ?? `Талант ${id}`,
-              description:
-                talent?.description ?? "Описание не найдено",
+              description: talent?.description ?? "Описание не найдено",
               details: talent?.details ?? "",
               score,
             };
@@ -72,9 +69,7 @@ export default function CoreTalentsResults() {
   }, []);
 
   if (loading)
-    return (
-      <div className="p-6 text-center">Загрузка результатов...</div>
-    );
+    return <div className="p-6 text-center">Загрузка результатов...</div>;
 
   return (
     <div className="space-y-4 p-6">
@@ -83,26 +78,20 @@ export default function CoreTalentsResults() {
       </h2>
 
       {results.length === 0 ? (
-        <p className="text-center text-gray-500">
-          Нет доступных результатов
-        </p>
+        <p className="text-center text-gray-500">Нет доступных результатов</p>
       ) : (
         results.map((res, idx) => (
           <div
             key={res.id}
-            className={`border p-4 rounded-lg shadow transition ${idx < 5 ? "bg-yellow-100 hover:shadow-xl" : "bg-white hover:shadow-lg"}`}
+            className={`border p-4 rounded-lg shadow bg-white hover:shadow-lg transition ${idx < 5 ? "bg-yellow-100" : ""}`}
           >
             <h3 className="text-lg font-semibold">
-              {idx + 1 <= 3
-                ? `${idx + 1 === 1 ? "🥇" : idx + 1 === 2 ? "🥈" : "🥉"} ${idx + 1}. ${res.name}`
-                : `${idx + 1}. ${res.name}`}
+              {idx + 1}. {res.name} <span className="text-sm text-gray-500">(Баллы: {res.score})</span>
             </h3>
-            <p className="text-sm text-gray-600 mt-1">
-              {res.description}
-            </p>
-            <p className="text-sm text-gray-800 mt-2">
-              {res.details}
-            </p>
+            <p className="text-sm text-gray-700 mt-1">{res.description}</p>
+            {res.details && (
+              <p className="text-sm text-gray-500 mt-2 italic">{res.details}</p>
+            )}
           </div>
         ))
       )}
@@ -127,5 +116,3 @@ export default function CoreTalentsResults() {
     </div>
   );
 }
-
-
