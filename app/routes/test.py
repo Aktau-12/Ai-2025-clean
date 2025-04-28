@@ -27,7 +27,7 @@ def add_xp(user_id: int, db: Session, amount: int = 20):
     if progress:
         progress.xp = (progress.xp or 0) + amount
     else:
-        progress = UserHeroProgress(user_id=user.id, xp=amount, step_id="init")
+        progress = UserHeroProgress(user_id=user_id, xp=amount, step_id="init")
         db.add(progress)
     db.commit()
 
@@ -67,16 +67,18 @@ def get_coretalents_results(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка разбора ответов: {e}")
 
-    return {
-        "answers": parsed_answers
-    }
+    return {"answers": parsed_answers}
 
-# Загрузим coretalents_results_data_full.json для обработки
+# Загрузим coretalents_results_data_full.json и преобразуем в словарь { "id": {...} }
 coretalents_data = {}
 coretalents_path = Path(__file__).resolve().parent.parent / "data" / "coretalents_results_data_full.json"
 if coretalents_path.exists():
-    with open(coretalents_path, "r", encoding="utf-8") as f:
-        coretalents_data = json.load(f)
+    raw = json.loads(coretalents_path.read_text(encoding="utf-8"))
+    # если JSON — список, то преобразуем в dict по ключу "id"
+    if isinstance(raw, list):
+        coretalents_data = { str(item["id"]): item for item in raw }
+    else:
+        coretalents_data = raw
 
 @router.get("/my-results")
 def get_my_results(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -91,12 +93,16 @@ def get_my_results(user: User = Depends(get_current_user), db: Session = Depends
     )
     if core:
         parsed = ast.literal_eval(core.answers)
-        top_traits = sorted(parsed.items(), key=lambda item: item[1], reverse=True)[:5]
-        top_summary = []
+        # Топ-5 по баллам
+        top_traits = sorted(parsed.items(), key=lambda x: x[1], reverse=True)[:5]
+        # Собираем названия талантов из справочника
+        summary_list = []
         for trait_id, _ in top_traits:
-            talent = coretalents_data.get(str(trait_id), {}).get("name", f"Талант {trait_id}")
-            top_summary.append(talent)
-        summary_text = ", ".join(top_summary)
+            entry = coretalents_data.get(str(trait_id), {})
+            name = entry.get("name") or entry.get("title") or f"Талант {trait_id}"
+            summary_list.append(name)
+        summary_text = ", ".join(summary_list)
+
         results.append({
             "test_name": "CoreTalents 34",
             "result_id": core.id,
@@ -115,34 +121,13 @@ def get_my_results(user: User = Depends(get_current_user), db: Session = Depends
     )
     if bigfive:
         parsed = ast.literal_eval(bigfive.answers)
-        summary_scores = f"О: {parsed.get('O')}, C: {parsed.get('C')}, E: {parsed.get('E')}, A: {parsed.get('A')}, N: {parsed.get('N')}"
+        summary_scores = f"O: {parsed.get('O')}, C: {parsed.get('C')}, E: {parsed.get('E')}, A: {parsed.get('A')}, N: {parsed.get('N')}"
         description_parts = []
-
-        if parsed.get("O", 0) >= 3:
-            description_parts.append("открыт к новому")
-        else:
-            description_parts.append("предпочитает стабильность")
-
-        if parsed.get("C", 0) >= 3:
-            description_parts.append("организованный и надёжный")
-        else:
-            description_parts.append("гибкий и творческий")
-
-        if parsed.get("E", 0) >= 3:
-            description_parts.append("энергичный и общительный")
-        else:
-            description_parts.append("спокойный и наблюдательный")
-
-        if parsed.get("A", 0) >= 3:
-            description_parts.append("доброжелательный и вежливый")
-        else:
-            description_parts.append("прямой и критичный")
-
-        if parsed.get("N", 0) >= 3:
-            description_parts.append("эмоционально чувствительный")
-        else:
-            description_parts.append("уравновешенный и стрессоустойчивый")
-
+        description_parts.append("открыт к новому" if parsed.get("O", 0) >= 3 else "предпочитает стабильность")
+        description_parts.append("организованный и надёжный" if parsed.get("C", 0) >= 3 else "гибкий и творческий")
+        description_parts.append("энергичный и общительный" if parsed.get("E", 0) >= 3 else "спокойный и наблюдательный")
+        description_parts.append("доброжелательный и вежливый" if parsed.get("A", 0) >= 3 else "прямой и критичный")
+        description_parts.append("эмоционально чувствительный" if parsed.get("N", 0) >= 3 else "уравновешенный и стрессоустойчивый")
         summary_full = f"{summary_scores}\nТы — {', '.join(description_parts)} человек."
 
         results.append({
@@ -177,22 +162,13 @@ def get_test_questions(test_id: int, db: Session = Depends(get_db)):
     if test_id == 1:
         questions = db.query(CoreQuestion).order_by(CoreQuestion.position).all()
         return [
-            {
-                "id": q.id,
-                "question_a": q.question_a,
-                "question_b": q.question_b,
-                "position": q.position
-            }
+            {"id": q.id, "question_a": q.question_a, "question_b": q.question_b, "position": q.position}
             for q in questions
         ]
     elif test_id == 2:
         questions = db.query(Question).filter(Question.test_id == 2).order_by(Question.position).all()
         return [
-            {
-                "id": q.id,
-                "text": q.text,
-                "position": q.position
-            }
+            {"id": q.id, "text": q.text, "position": q.position}
             for q in questions
         ]
     else:
@@ -202,17 +178,10 @@ class CoreTalentsSubmission(BaseModel):
     answers: dict[int, int]
 
 @router.post("/1/submit")
-def submit_coretalents(
-    submission: CoreTalentsSubmission,
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    result = UserResult(
-        user_id=user.id,
-        test_id=1,
-        answers=json.dumps(submission.answers),
-        score=0
-    )
+def submit_coretalents(submission: CoreTalentsSubmission,
+                       user: User = Depends(get_current_user),
+                       db: Session = Depends(get_db)):
+    result = UserResult(user_id=user.id, test_id=1, answers=json.dumps(submission.answers), score=0)
     db.add(result)
     db.commit()
     add_xp(user.id, db, amount=50)
@@ -223,18 +192,11 @@ class BigFiveSubmission(BaseModel):
     result: dict
 
 @router.post("/{test_id}/submit")
-def submit_test_answers(
-    test_id: int,
-    submission: BigFiveSubmission,
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    result = UserResult(
-        user_id=user.id,
-        test_id=test_id,
-        answers=json.dumps(submission.result),
-        score=0
-    )
+def submit_test_answers(test_id: int,
+                        submission: BigFiveSubmission,
+                        user: User = Depends(get_current_user),
+                        db: Session = Depends(get_db)):
+    result = UserResult(user_id=user.id, test_id=test_id, answers=json.dumps(submission.result), score=0)
     db.add(result)
     db.commit()
     if test_id == 2:
@@ -244,10 +206,7 @@ def submit_test_answers(
     return {"message": f"Test {test_id} submitted!", "result_id": result.id}
 
 @router.get("/2/result")
-def get_bigfive_result(
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
+def get_bigfive_result(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     result = (
         db.query(UserResult)
         .filter(UserResult.user_id == user.id, UserResult.test_id == 2)
