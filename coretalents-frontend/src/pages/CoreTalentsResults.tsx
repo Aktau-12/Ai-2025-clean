@@ -17,6 +17,7 @@ type TalentResultType = {
 export default function CoreTalentsResults() {
   const [results, setResults] = useState<TalentResultType[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -29,6 +30,11 @@ export default function CoreTalentsResults() {
         });
 
         const scores: Record<string, number> = response.data.scores || {};
+
+        if (Object.keys(scores).length === 0) {
+          setError("Результаты CoreTalents отсутствуют. Пожалуйста, пройдите тест.");
+          return;
+        }
 
         const sortedResults = Object.entries(scores)
           .map(([talentId, score]) => {
@@ -50,6 +56,7 @@ export default function CoreTalentsResults() {
           "❌ Ошибка загрузки результатов:",
           error.response?.data || error.message
         );
+        setError("Ошибка загрузки результатов. Попробуйте позже.");
       } finally {
         setLoading(false);
       }
@@ -61,7 +68,11 @@ export default function CoreTalentsResults() {
   const getNumbering = (index: number) => `${index + 1}.`;
 
   if (loading) {
-    return <div className="p-6 text-center">Загрузка результатов...</div>;
+    return <div className="p-6 text-center">⏳ Загрузка результатов...</div>;
+  }
+
+  if (error) {
+    return <div className="p-6 text-center text-red-500">{error}</div>;
   }
 
   return (
@@ -72,7 +83,7 @@ export default function CoreTalentsResults() {
 
       {results.length === 0 ? (
         <p className="text-center text-gray-500">
-          Нет доступных результатов
+          Нет доступных результатов.
         </p>
       ) : (
         results.map((res, idx) => (
@@ -105,7 +116,7 @@ export default function CoreTalentsResults() {
         </button>
         <button
           onClick={() => {
-            localStorage.removeItem("token");
+            localStorage.clear(); // ✅ Полная очистка всех данных
             navigate("/login");
           }}
           className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"

@@ -12,6 +12,7 @@ subprocess.run(["alembic", "upgrade", "head"], check=True)
 
 print("✅ MAIN.PY ЗАПУЩЕН")
 
+# ✅ Инициализация приложения
 app = FastAPI(
     title="AI Profiler",
     description="🧠 Платформа для психологических тестов, саморазвития и AI-помощи",
@@ -19,16 +20,9 @@ app = FastAPI(
 )
 
 # 🌐 Настройка CORS
-origins = [
-    "https://ai-2025-clean-1.onrender.com",
-    "https://ai-2025-clean.onrender.com",
-    "http://localhost:5173",
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,  # ✅ Разрешили фронтенд и бэкенд
-    allow_origin_regex="https://.*\\.onrender\\.com",  # ✅ wildcard для любых поддоменов render.com
+    allow_origins=["*"],  # ✅ Разрешаем все источники для упрощения разработки
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
