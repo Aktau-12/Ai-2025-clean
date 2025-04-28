@@ -13,7 +13,6 @@ import HeroJourney from "./pages/HeroJourney"; // ✅ добавлено
 import HabitTracker from "./pages/HabitTracker"; // ✅ НОВОЕ
 const API_URL = import.meta.env.VITE_API_URL;
 
-
 function App() {
   return (
     <Router>
@@ -41,6 +40,14 @@ function App() {
         />
         <Route
           path="/coretalents/results"
+          element={
+            <PrivateRoute>
+              <CoreTalentsResults />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/coretalents-results"
           element={
             <PrivateRoute>
               <CoreTalentsResults />
@@ -105,5 +112,3 @@ function App() {
 }
 
 export default App;
-
-
