@@ -11,6 +11,7 @@ from pydantic import BaseModel
 from datetime import datetime
 import ast
 import json
+from pathlib import Path
 
 router = APIRouter()
 
@@ -66,10 +67,16 @@ def get_coretalents_results(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка разбора ответов: {e}")
 
-    # Возвращаем только answers, чтобы фронт корректно работал
     return {
         "answers": parsed_answers
     }
+
+# Загрузим coretalents_results_data_full.json для обработки
+coretalents_data = {}
+coretalents_path = Path(__file__).resolve().parent.parent / "data" / "coretalents_results_data_full.json"
+if coretalents_path.exists():
+    with open(coretalents_path, "r", encoding="utf-8") as f:
+        coretalents_data = json.load(f)
 
 @router.get("/my-results")
 def get_my_results(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -84,15 +91,19 @@ def get_my_results(user: User = Depends(get_current_user), db: Session = Depends
     )
     if core:
         parsed = ast.literal_eval(core.answers)
-        top_traits = list(parsed.items())[:5]
-        top_summary = ", ".join([str(k) for k, _ in top_traits])
+        top_traits = sorted(parsed.items(), key=lambda item: item[1], reverse=True)[:5]
+        top_summary = []
+        for trait_id, _ in top_traits:
+            talent = coretalents_data.get(str(trait_id), {}).get("title", f"Талант {trait_id}")
+            top_summary.append(talent)
+        summary_text = ", ".join(top_summary)
         results.append({
             "test_name": "CoreTalents 34",
             "result_id": core.id,
             "answers_count": len(parsed),
             "score": core.score,
             "completed_at": core.timestamp.isoformat() if core.timestamp else None,
-            "summary": f"Топ 5 талантов: {top_summary}"
+            "summary": f"Топ 5 талантов: {summary_text}"
         })
 
     # Big Five (с описанием)

@@ -90,10 +90,12 @@ export default function CoreTalentsResults() {
         results.map((res, idx) => (
           <div
             key={res.id}
-            className="border p-4 rounded-lg shadow bg-white hover:shadow-lg transition"
+            className={`border p-4 rounded-lg shadow transition ${idx < 5 ? "bg-yellow-100 hover:shadow-xl" : "bg-white hover:shadow-lg"}`}
           >
             <h3 className="text-lg font-semibold">
-              {idx + 1}. {res.name}
+              {idx + 1 <= 3
+                ? `${idx + 1 === 1 ? "🥇" : idx + 1 === 2 ? "🥈" : "🥉"} ${idx + 1}. ${res.name}`
+                : `${idx + 1}. ${res.name}`}
             </h3>
             <p className="text-sm text-gray-600 mt-1">
               {res.description}

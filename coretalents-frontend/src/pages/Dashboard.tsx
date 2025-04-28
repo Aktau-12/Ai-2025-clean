@@ -136,6 +136,16 @@ export default function Dashboard() {
                 🧪 {res.test_name} — {new Date(res.completed_at).toLocaleString()}
               </p>
               {res.summary && <p className="text-sm text-gray-700 mt-1">{res.summary}</p>}
+
+              {/* 🔥 Добавлено: если CoreTalents 34 — показать кнопку перехода */}
+              {res.test_name === "CoreTalents 34" && (
+                <button
+                  onClick={() => navigate("/coretalents-results")}
+                  className="btn-primary mt-2"
+                >
+                  🔎 Посмотреть все 34 таланта
+                </button>
+              )}
             </div>
           ))}
           <button onClick={() => setTab("menu")} className="btn-outline">
