@@ -64,10 +64,15 @@ def get_coretalents_results(
 
     try:
         parsed_answers = ast.literal_eval(result.answers)
+        scores = ast.literal_eval(result.score)  # Загружаем баллы
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Ошибка разбора ответов: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка разбора данных: {e}")
 
-    return {"answers": parsed_answers}
+    # Возвращаем ответ с баллами
+    return {
+        "answers": parsed_answers,
+        "scores": scores
+    }
 
 # Загрузка coretalents_results_data_full.json
 coretalents_data = {}
@@ -178,10 +183,21 @@ class CoreTalentsSubmission(BaseModel):
 def submit_coretalents(submission: CoreTalentsSubmission,
                        user: User = Depends(get_current_user),
                        db: Session = Depends(get_db)):
-    result = UserResult(user_id=user.id, test_id=1, answers=json.dumps(submission.answers), score=0)
+    # Подсчёт баллов для каждого таланта
+    scores = {talent_id: 0 for talent_id in range(1, 35)}  # Инициализация баллов для 34 талантов
+    for question_id, answer in submission.answers.items():
+        talent_id = mapping.get(question_id)
+        if talent_id:
+            scores[talent_id] += answer
+
+    # Сохранение результатов
+    result = UserResult(user_id=user.id, test_id=1, answers=json.dumps(submission.answers), score=json.dumps(scores))
     db.add(result)
     db.commit()
+
+    # Добавление XP пользователю
     add_xp(user.id, db, amount=50)
+
     return {"message": "CoreTalents submitted successfully", "result_id": result.id}
 
 class BigFiveSubmission(BaseModel):

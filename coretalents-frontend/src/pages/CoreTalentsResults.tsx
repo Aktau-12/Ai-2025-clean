@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import talentsData from "../data/coretalents_results_data.json";
-import rawMapping from "../data/coretalents_question_mapping.json";
 import { useNavigate } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -11,11 +10,6 @@ export default function CoreTalentsResults() {
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-
-  const mapping: Record<number, number> = {};
-  rawMapping.forEach((item) => {
-    mapping[item.question_id] = item.talent_id;
-  });
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -26,22 +20,11 @@ export default function CoreTalentsResults() {
           },
         });
 
-        const parsed = res.data.answers || {};
+        const parsedAnswers = res.data.answers || {};
+        const scores = res.data.scores || {}; // Получаем сохранённые баллы
 
-        const validAnswers = Object.entries(parsed)
-          .filter(([questionId]) => mapping.hasOwnProperty(Number(questionId)))
-          .map(([questionId, answer]) => ({
-            question_id: Number(questionId),
-            answer: Number(answer),
-          }));
-
-        const counts: Record<number, number> = {};
-        validAnswers.forEach((a: any) => {
-          const talentId = mapping[a.question_id];
-          counts[talentId] = (counts[talentId] || 0) + (a.answer ?? 0);
-        });
-
-        const sorted = Object.entries(counts)
+        // Сортировка результатов по баллам
+        const sortedResults = Object.entries(scores)
           .map(([talentId, score]) => {
             const id = Number(talentId);
             const talent = talentsData.find((t) => Number(t.id) === id);
@@ -55,7 +38,7 @@ export default function CoreTalentsResults() {
           })
           .sort((a, b) => b.score - a.score);
 
-        setResults(sorted);
+        setResults(sortedResults);
       } catch (err) {
         console.error("❌ Ошибка загрузки результатов:", err);
       } finally {
@@ -94,6 +77,7 @@ export default function CoreTalentsResults() {
             {res.details && (
               <p className="text-sm text-gray-500 mt-2 italic">{res.details}</p>
             )}
+            <p className="text-sm text-gray-500 mt-2">Баллы: {res.score}</p> {/* Отображаем баллы */}
           </div>
         ))
       )}

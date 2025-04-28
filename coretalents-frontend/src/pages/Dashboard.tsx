@@ -102,7 +102,6 @@ export default function Dashboard() {
         )}
 
         {/* Остальные вкладки */}
-
         {tab === "tests" && (
           <div className="space-y-4 mt-8 flex flex-col items-center">
             <button onClick={() => navigate("/coretalents")} className="btn-primary">
@@ -156,6 +155,7 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* Путь героя */}
         {tab === "hero" && (
           <div className="mt-8">
             <HeroPath />
@@ -165,6 +165,7 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* Другие вкладки */}
         {tab === "mentor" && (
           <div className="space-y-2 text-center mt-8">
             <p>🎓 Персональные рекомендации:</p>
@@ -179,6 +180,7 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* Профессии */}
         {tab === "professions" && (
           <div className="mt-8">
             <HeroProfessions />
@@ -188,6 +190,7 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* Рейтинг */}
         {tab === "ranking" && (
           <div className="mt-8">
             <Ranking />
@@ -197,6 +200,7 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* Привычки */}
         {tab === "habits" && (
           <div className="mt-8">
             <HabitTracker />
@@ -206,6 +210,7 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* Алгоритм мышления */}
         {tab === "thinking" && (
           <div className="mt-8">
             <ThinkingAlgorithm />
@@ -215,6 +220,7 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* Колесо жизни */}
         {tab === "lifewheel" && (
           <div className="mt-8">
             <LifeWheel />
@@ -224,6 +230,7 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* Выход */}
         <div className="text-center pt-12">
           <button
             onClick={() => {
