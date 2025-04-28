@@ -53,185 +53,188 @@ export default function Dashboard() {
   }, [navigate]);
 
   const tabs = [
-    { key: "tests", label: "🧠 Мои тесты" },
-    { key: "results", label: "📊 Результаты" },
-    { key: "hero", label: "🛤 Путь героя" },
-    { key: "mentor", label: "🤖 AI‑наставник" },
-    { key: "professions", label: "🧭 Профессии" },
+    { key: "tests", label: "💡 Мои тесты" },
+    { key: "results", label: "📈 Результаты" },
+    { key: "hero", label: "🗮️ Путь героя" },
+    { key: "mentor", label: "🧙‍♂️ AI-наставник" },
+    { key: "professions", label: "💼 Профессии" },
     { key: "ranking", label: "🏆 Рейтинг" },
-    { key: "habits", label: "💡 Привычки" },
-    { key: "thinking", label: "🧠 Алгоритм мышления" },
+    { key: "habits", label: "🔄 Привычки" },
+    { key: "thinking", label: "💡 Алгоритм мышления" },
     { key: "lifewheel", label: "📈 Колесо жизни" },
   ];
 
   return (
-    <div className="max-w-5xl mx-auto p-6 space-y-6">
-      <h1 className="text-3xl font-bold text-center text-blue-800">
-        📊 Добро пожаловать в Проект-Я, {name || email}!
-      </h1>
-      {email && (
-        <p className="text-center text-gray-600">
-          Вы вошли как <strong>{email}</strong>
-        </p>
-      )}
+    <div className="min-h-screen bg-gray-100 py-10 px-6">
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-4xl font-bold text-center text-blue-800 mb-2">
+          Добро пожаловать в Проект-Я, {name || email}!
+        </h1>
+        {email && (
+          <p className="text-center text-gray-600 mb-8">
+            Вы вошли как <strong>{email}</strong>
+          </p>
+        )}
 
-      {tab === "menu" && (
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 mt-6">
-          {tabs.map((t) => (
-            <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
-              className="bg-white shadow-md rounded-xl p-4 flex flex-col items-center text-center hover:bg-blue-50"
-            >
-              <span className="text-2xl mb-2">{t.label}</span>
-              <span className="text-sm text-gray-500">
-                {t.key === "tests"
-                  ? "Пройти психологические тесты"
-                  : t.key === "hero"
-                  ? "Ваш путь развития"
-                  : t.key === "mentor"
-                  ? "AI-наставник с советами"
-                  : t.key === "lifewheel"
-                  ? "Оценка сфер жизни"
-                  : "Дополнительный модуль"}
-              </span>
+        {tab === "menu" && (
+          <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3">
+            {tabs.map((t) => (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                className="bg-white rounded-2xl p-6 shadow-lg flex flex-col items-center text-center transition-transform transform hover:scale-105 hover:bg-blue-50"
+              >
+                <span className="text-3xl mb-4">{t.label}</span>
+                <span className="text-sm text-gray-500">
+                  {t.key === "tests"
+                    ? "Пройти тесты"
+                    : t.key === "hero"
+                    ? "Ваш путь развития"
+                    : t.key === "mentor"
+                    ? "AI-наставник"
+                    : t.key === "lifewheel"
+                    ? "Колесо жизни"
+                    : "Дополнительно"}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Остальные вкладки */}
+
+        {tab === "tests" && (
+          <div className="space-y-4 mt-8 flex flex-col items-center">
+            <button onClick={() => navigate("/coretalents")} className="btn-primary">
+              CoreTalents 34
             </button>
-          ))}
+            <button onClick={() => navigate("/bigfive")} className="btn-primary">
+              Big Five
+            </button>
+            <button onClick={() => navigate("/mbti")} className="btn-primary">
+              MBTI
+            </button>
+            <button onClick={() => setTab("menu")} className="btn-outline">
+              🔙 Назад в меню
+            </button>
+          </div>
+        )}
+
+        {tab === "results" && (
+          <div className="space-y-4 mt-8">
+            {mbtiType && (
+              <div className="flex items-center justify-center gap-4">
+                <img
+                  src={`/mbti-avatars/${mbtiType}.png`}
+                  alt={mbtiType}
+                  className="w-12 h-12 rounded-full border"
+                />
+                <p className="text-blue-700 font-semibold">Ваш MBTI тип: {mbtiType}</p>
+              </div>
+            )}
+            <h3 className="font-semibold">История прохождения:</h3>
+            {results.map((res, idx) => (
+              <div key={idx} className="bg-white p-4 rounded-xl shadow">
+                <p className="text-sm font-medium">
+                  🧪 {res.test_name} — {new Date(res.completed_at).toLocaleString()}
+                </p>
+                {res.summary && <p className="text-sm text-gray-700 mt-1">{res.summary}</p>}
+
+                {res.test_name === "CoreTalents 34" && (
+                  <button
+                    onClick={() => navigate("/coretalents-results")}
+                    className="btn-primary mt-2"
+                  >
+                    🔎 Посмотреть все 34 таланта
+                  </button>
+                )}
+              </div>
+            ))}
+            <button onClick={() => setTab("menu")} className="btn-outline">
+              🔙 Назад в меню
+            </button>
+          </div>
+        )}
+
+        {tab === "hero" && (
+          <div className="mt-8">
+            <HeroPath />
+            <button onClick={() => setTab("menu")} className="btn-outline mt-4">
+              🔙 Назад в меню
+            </button>
+          </div>
+        )}
+
+        {tab === "mentor" && (
+          <div className="space-y-2 text-center mt-8">
+            <p>🎓 Персональные рекомендации:</p>
+            <ul className="list-disc list-inside text-left inline-block">
+              <li>Записывай идеи каждый день.</li>
+              <li>Сфокусируйся на одном проекте хотя бы на неделю.</li>
+              <li>Сделай первые 3 шага — это заложит фундамент.</li>
+            </ul>
+            <button onClick={() => setTab("menu")} className="btn-outline mt-4">
+              🔙 Назад в меню
+            </button>
+          </div>
+        )}
+
+        {tab === "professions" && (
+          <div className="mt-8">
+            <HeroProfessions />
+            <button onClick={() => setTab("menu")} className="btn-outline mt-4">
+              🔙 Назад в меню
+            </button>
+          </div>
+        )}
+
+        {tab === "ranking" && (
+          <div className="mt-8">
+            <Ranking />
+            <button onClick={() => setTab("menu")} className="btn-outline mt-4">
+              🔙 Назад в меню
+            </button>
+          </div>
+        )}
+
+        {tab === "habits" && (
+          <div className="mt-8">
+            <HabitTracker />
+            <button onClick={() => setTab("menu")} className="btn-outline mt-4">
+              🔙 Назад в меню
+            </button>
+          </div>
+        )}
+
+        {tab === "thinking" && (
+          <div className="mt-8">
+            <ThinkingAlgorithm />
+            <button onClick={() => setTab("menu")} className="btn-outline mt-4">
+              🔙 Назад в меню
+            </button>
+          </div>
+        )}
+
+        {tab === "lifewheel" && (
+          <div className="mt-8">
+            <LifeWheel />
+            <button onClick={() => setTab("menu")} className="btn-outline mt-4">
+              🔙 Назад в меню
+            </button>
+          </div>
+        )}
+
+        <div className="text-center pt-12">
+          <button
+            onClick={() => {
+              localStorage.removeItem("token");
+              navigate("/login");
+            }}
+            className="bg-red-500 hover:bg-red-600 text-white font-semibold px-6 py-3 rounded-xl"
+          >
+            🚪 Выйти
+          </button>
         </div>
-      )}
-
-      {tab === "tests" && (
-        <div className="space-y-4">
-          <button onClick={() => navigate("/coretalents")} className="btn-primary">
-            CoreTalents 34
-          </button>
-          <button onClick={() => navigate("/bigfive")} className="btn-primary">
-            Big Five
-          </button>
-          <button onClick={() => navigate("/mbti")} className="btn-primary">
-            MBTI
-          </button>
-          <button onClick={() => setTab("menu")} className="btn-outline">
-            🔙 Назад в меню
-          </button>
-        </div>
-      )}
-
-      {tab === "results" && (
-        <div className="space-y-4">
-          {mbtiType && (
-            <div className="flex items-center justify-center gap-4">
-              <img
-                src={`/mbti-avatars/${mbtiType}.png`}
-                alt={mbtiType}
-                className="w-12 h-12 rounded-full border"
-              />
-              <p className="text-blue-700 font-semibold">🧬 Ваш MBTI тип: {mbtiType}</p>
-            </div>
-          )}
-          <h3 className="font-semibold">📜 История прохождения:</h3>
-          {results.map((res, idx) => (
-            <div key={idx} className="bg-gray-100 rounded p-4">
-              <p className="text-sm font-medium">
-                🧪 {res.test_name} — {new Date(res.completed_at).toLocaleString()}
-              </p>
-              {res.summary && <p className="text-sm text-gray-700 mt-1">{res.summary}</p>}
-
-              {/* 🔥 Добавлено: если CoreTalents 34 — показать кнопку перехода */}
-              {res.test_name === "CoreTalents 34" && (
-                <button
-                  onClick={() => navigate("/coretalents-results")}
-                  className="btn-primary mt-2"
-                >
-                  🔎 Посмотреть все 34 таланта
-                </button>
-              )}
-            </div>
-          ))}
-          <button onClick={() => setTab("menu")} className="btn-outline">
-            🔙 Назад в меню
-          </button>
-        </div>
-      )}
-
-      {tab === "hero" && (
-        <div className="space-y-4">
-          <HeroPath />
-          <button onClick={() => setTab("menu")} className="btn-outline">
-            🔙 Назад в меню
-          </button>
-        </div>
-      )}
-
-      {tab === "mentor" && (
-        <div className="space-y-2 text-sm">
-          <p>🎓 Вот персональные рекомендации:</p>
-          <ul className="list-disc list-inside space-y-1">
-            <li>Записывай идеи каждый день.</li>
-            <li>Сфокусируйся на одном проекте хотя бы на неделю.</li>
-            <li>Сделай первые 3 шага — это заложит фундамент.</li>
-          </ul>
-          <button onClick={() => setTab("menu")} className="btn-outline">
-            🔙 Назад в меню
-          </button>
-        </div>
-      )}
-
-      {tab === "professions" && (
-        <div>
-          <HeroProfessions />
-          <button onClick={() => setTab("menu")} className="btn-outline mt-4">
-            🔙 Назад в меню
-          </button>
-        </div>
-      )}
-
-      {tab === "ranking" && (
-        <div>
-          <Ranking />
-          <button onClick={() => setTab("menu")} className="btn-outline mt-4">
-            🔙 Назад в меню
-          </button>
-        </div>
-      )}
-
-      {tab === "habits" && (
-        <div>
-          <HabitTracker />
-          <button onClick={() => setTab("menu")} className="btn-outline mt-4">
-            🔙 Назад в меню
-          </button>
-        </div>
-      )}
-
-      {tab === "thinking" && (
-        <div>
-          <ThinkingAlgorithm />
-          <button onClick={() => setTab("menu")} className="btn-outline mt-4">
-            🔙 Назад в меню
-          </button>
-        </div>
-      )}
-
-      {tab === "lifewheel" && (
-        <div>
-          <LifeWheel />
-          <button onClick={() => setTab("menu")} className="btn-outline mt-4">
-            🔙 Назад в меню
-          </button>
-        </div>
-      )}
-
-      <div className="text-center pt-8">
-        <button
-          onClick={() => {
-            localStorage.removeItem("token");
-            navigate("/login");
-          }}
-          className="bg-red-500 text-white px-4 py-2 rounded"
-        >
-          🚪 Выйти
-        </button>
       </div>
     </div>
   );
