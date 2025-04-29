@@ -21,46 +21,46 @@ export default function CoreTalentsResults() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    async function fetchResults() {
+    const fetchResults = async () => {
       try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          setError("⛔ Токен отсутствует. Пожалуйста, войдите снова.");
+          return;
+        }
+
         const response = await axios.get(`${API_URL}/tests/1/results`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         const scores: Record<string, number> = response.data.scores || {};
 
         if (Object.keys(scores).length === 0) {
-          setError("Результаты CoreTalents отсутствуют. Пожалуйста, пройдите тест.");
+          setError("⛔ Результаты CoreTalents отсутствуют. Пройдите тест.");
           return;
         }
 
-        const sortedResults = Object.entries(scores)
+        const mappedResults = Object.entries(scores)
           .map(([talentId, score]) => {
-            const id = Number(talentId);
-            const talent = talentsData.find((t) => Number(t.id) === id);
+            const talent = talentsData.find((t) => Number(t.id) === Number(talentId));
             return {
-              id,
-              name: talent?.name ?? `Талант ${id}`,
-              description: talent?.description ?? "Описание не найдено",
-              details: talent?.details ?? "",
+              id: Number(talentId),
+              name: talent?.name || `Талант ${talentId}`,
+              description: talent?.description || "Описание отсутствует",
+              details: talent?.details || "",
               score,
-            } as TalentResultType;
+            };
           })
-          .sort((a, b) => b.score - a.score);
+          .sort((a, b) => b.score - a.score); // Сортируем по убыванию баллов
 
-        setResults(sortedResults);
+        setResults(mappedResults);
       } catch (error: any) {
-        console.error(
-          "❌ Ошибка загрузки результатов:",
-          error.response?.data || error.message
-        );
-        setError("Ошибка загрузки результатов. Попробуйте позже.");
+        console.error("❌ Ошибка загрузки результатов:", error);
+        setError("Ошибка при загрузке результатов. Попробуйте позже.");
       } finally {
         setLoading(false);
       }
-    }
+    };
 
     fetchResults();
   }, []);
@@ -96,13 +96,11 @@ export default function CoreTalentsResults() {
             </h3>
             <p className="text-sm text-gray-700 mt-1">{res.description}</p>
             {res.details && (
-              <p className="text-sm text-gray-500 mt-2 italic">
+              <p className="text-xs text-gray-500 mt-2 italic">
                 {res.details}
               </p>
             )}
-            <p className="text-sm text-gray-500 mt-2">
-              Баллы: {res.score}
-            </p>
+            <p className="text-xs text-gray-400 mt-2">Баллы: {res.score}</p>
           </div>
         ))
       )}
@@ -116,7 +114,7 @@ export default function CoreTalentsResults() {
         </button>
         <button
           onClick={() => {
-            localStorage.clear(); // ✅ Полная очистка всех данных
+            localStorage.clear();
             navigate("/login");
           }}
           className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"

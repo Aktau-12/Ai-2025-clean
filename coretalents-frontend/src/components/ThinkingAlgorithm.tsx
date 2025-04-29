@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import HabitTracker from "../pages/HabitTracker";
+import { useNavigate } from "react-router-dom";
 
 const steps = [
   { question: "🧠 Какая у тебя сейчас задача или проблема?", placeholder: "Опиши кратко" },
@@ -16,7 +16,7 @@ const ThinkingAlgorithm = () => {
   const [stepIndex, setStepIndex] = useState(0);
   const [answers, setAnswers] = useState<string[]>(Array(steps.length).fill(""));
   const [finished, setFinished] = useState(false);
-  const [addHabit, setAddHabit] = useState(false);
+  const navigate = useNavigate();
 
   const handleNext = () => {
     if (stepIndex < steps.length - 1) {
@@ -41,7 +41,9 @@ const ThinkingAlgorithm = () => {
   if (finished) {
     return (
       <div className="bg-white rounded-xl shadow p-6 space-y-6 text-center">
-        <h2 className="text-2xl font-bold text-green-600 mb-4">🎉 Поздравляем! Вы завершили алгоритм мышления!</h2>
+        <h2 className="text-2xl font-bold text-green-600 mb-4">
+          🎉 Поздравляем! Вы завершили алгоритм мышления!
+        </h2>
         <div className="text-left space-y-3">
           {steps.map((step, idx) => (
             <div key={idx} className="border-b pb-2">
@@ -51,19 +53,20 @@ const ThinkingAlgorithm = () => {
           ))}
         </div>
 
-        {!addHabit ? (
+        <div className="mt-6 space-x-4">
           <button
-            onClick={() => setAddHabit(true)}
-            className="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded-lg shadow transition"
+            onClick={() => navigate("/habits")}
+            className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-5 py-2 rounded-lg transition"
           >
             🔄 Добавить как привычку
           </button>
-        ) : (
-          <div className="mt-6">
-            <h3 className="text-lg font-semibold mb-4">🧩 Добавление в привычки:</h3>
-            <HabitTracker />
-          </div>
-        )}
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="bg-gray-500 hover:bg-gray-600 text-white font-semibold px-5 py-2 rounded-lg transition"
+          >
+            🔙 Вернуться в меню
+          </button>
+        </div>
       </div>
     );
   }

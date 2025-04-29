@@ -1,22 +1,24 @@
 import archetypes from "../data/hero_archetypes.json";
-const API_URL = import.meta.env.VITE_API_URL;
-
 
 interface UserProfile {
   mbti: string;
   bigfive: {
-    O: number; // Openness
-    C: number; // Conscientiousness
-    E: number; // Extraversion
-    A: number; // Agreeableness
-    N: number; // Neuroticism (обратная Emotional Stability)
+    O: number;
+    C: number;
+    E: number;
+    A: number;
+    N: number;
   };
-  coretalents: string[]; // список top-5 талантов
+  coretalents: string[];
 }
 
 export function getHeroArchetype(profile: UserProfile) {
-  const { mbti, bigfive, coretalents } = profile;
+  if (!profile || !profile.mbti || !profile.bigfive || !profile.coretalents) {
+    console.error("❌ Невалидный профиль для расчета архетипа");
+    return null;
+  }
 
+  const { mbti, bigfive, coretalents } = profile;
   let scores: Record<string, number> = {};
 
   archetypes.forEach((arch) => {
@@ -46,9 +48,15 @@ export function getHeroArchetype(profile: UserProfile) {
     scores[arch.code] = score;
   });
 
-  // Найдём архетип с самым высоким баллом
   const top = Object.entries(scores).sort((a, b) => b[1] - a[1])[0];
-  return archetypes.find((a) => a.code === top[0]);
+
+  if (!top) {
+    console.warn("⚠️ Архетип не определён, возвращаем дефолтного 'Искателя'");
+    return archetypes.find((a) => a.code === "seeker"); // ← имя дефолтного архетипа
+  }
+
+  const selected = archetypes.find((a) => a.code === top[0]);
+  console.log(`🎯 Выбран архетип: ${selected?.name || "Не найден"}`);
+
+  return selected;
 }
-
-

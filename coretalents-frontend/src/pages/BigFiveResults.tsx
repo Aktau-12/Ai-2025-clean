@@ -12,6 +12,8 @@ import {
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 type BigFiveData = {
   [K in "O" | "C" | "E" | "A" | "N"]?: number;
 };
@@ -22,8 +24,6 @@ export default function BigFiveResults() {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const API_URL = import.meta.env.VITE_API_URL;
-
   const traitLabels: Record<keyof BigFiveData, string> = {
     O: "Открытость опыту",
     C: "Сознательность",
@@ -33,35 +33,39 @@ export default function BigFiveResults() {
   };
 
   const traitDescriptions: Record<keyof BigFiveData, string> = {
-    O: "Ты склонен к любопытству, гибкости мышления и богатому воображению...",
-    C: "Ты организован, ответственен и внимателен к деталям...",
-    E: "Ты черпаешь энергию из общения и активного взаимодействия...",
-    A: "Ты стремишься к гармонии и доверительным отношениям...",
-    N: "Ты глубоко переживаешь всё, что происходит...",
+    O: "Ты склонен к любопытству, гибкости мышления и богатому воображению.",
+    C: "Ты организован, ответственен и внимателен к деталям.",
+    E: "Ты черпаешь энергию из общения и активного взаимодействия.",
+    A: "Ты стремишься к гармонии и доверительным отношениям.",
+    N: "Ты глубоко переживаешь события, эмоционально отзывчив.",
   };
 
   useEffect(() => {
-    async function fetchData() {
+    const fetchData = async () => {
       try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          setError("⛔ Токен отсутствует. Пожалуйста, авторизуйтесь.");
+          return;
+        }
+
         const response = await axios.get(`${API_URL}/tests/2/result`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         if (!response.data || Object.keys(response.data).length === 0) {
-          setError("Результаты Big Five отсутствуют. Пожалуйста, пройдите тест.");
+          setError("⛔ Результаты Big Five отсутствуют. Пройдите тест.");
           return;
         }
 
         setData(response.data);
       } catch (err: any) {
         console.error("❌ Ошибка загрузки Big Five:", err.response?.data || err.message);
-        setError("Ошибка загрузки результатов. Попробуйте позже.");
+        setError("Ошибка загрузки данных. Попробуйте позже.");
       } finally {
         setLoading(false);
       }
-    }
+    };
 
     fetchData();
   }, []);
@@ -74,12 +78,23 @@ export default function BigFiveResults() {
     return (
       <div className="p-6 text-center text-red-500 space-y-4">
         <p>{error}</p>
-        <button
-          onClick={() => navigate("/dashboard")}
-          className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition"
-        >
-          🔙 Назад в меню
-        </button>
+        <div className="mt-6 flex justify-center space-x-4">
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded transition"
+          >
+            🔙 В меню
+          </button>
+          <button
+            onClick={() => {
+              localStorage.clear();
+              navigate("/login");
+            }}
+            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded transition"
+          >
+            🚪 Выйти
+          </button>
+        </div>
       </div>
     );
   }
@@ -103,24 +118,20 @@ export default function BigFiveResults() {
     .sort((a, b) => b.value - a.value);
 
   return (
-    <div className="mt-6 space-y-10">
+    <div className="mt-6 space-y-10 px-4">
       <div>
-        <h3 className="text-lg font-semibold mb-4">
-          🔍 Визуализация результатов Big Five
+        <h3 className="text-xl font-bold text-center mb-6">
+          📈 Ваш профиль Big Five
         </h3>
+
         <ResponsiveContainer width="100%" height={400}>
-          <RadarChart
-            cx="50%"
-            cy="50%"
-            outerRadius="80%"
-            data={chartData}
-          >
+          <RadarChart cx="50%" cy="50%" outerRadius="80%" data={chartData}>
             <PolarGrid />
             <PolarAngleAxis dataKey="label" />
             <PolarRadiusAxis domain={[1, 5]} />
             <Tooltip />
             <Radar
-              name="Вы"
+              name="Профиль"
               dataKey="value"
               stroke="#8884d8"
               fill="#8884d8"
@@ -139,25 +150,29 @@ export default function BigFiveResults() {
             key={trait.trait}
             className="p-4 border rounded-lg bg-white shadow"
           >
-            <h4 className="text-purple-700 font-bold text-md mb-2">
+            <h4 className="text-purple-700 font-bold mb-2">
               {idx + 1}. {trait.label}
             </h4>
-            <p className="text-gray-700">
-              {trait.description}
-            </p>
+            <p className="text-gray-700">{trait.description}</p>
           </div>
         ))}
       </div>
 
-      <div className="text-center">
+      <div className="text-center mt-10 flex justify-center space-x-4">
+        <button
+          onClick={() => navigate("/dashboard")}
+          className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-5 py-2 rounded-lg transition"
+        >
+          🔙 В меню
+        </button>
         <button
           onClick={() => {
             localStorage.clear();
-            navigate("/dashboard");
+            navigate("/login");
           }}
-          className="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded-lg shadow transition"
+          className="bg-red-500 hover:bg-red-600 text-white font-semibold px-5 py-2 rounded-lg transition"
         >
-          🔙 В меню
+          🚪 Выйти
         </button>
       </div>
     </div>

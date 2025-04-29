@@ -14,7 +14,6 @@ export default function CoreTalentsTest() {
   const [timer, setTimer] = useState(20);
   const navigate = useNavigate();
 
-  // Загрузка вопросов
   useEffect(() => {
     axios
       .get(`${API_URL}/tests/1/questions`, {
@@ -26,7 +25,6 @@ export default function CoreTalentsTest() {
       .catch((error) => console.error("❌ Ошибка загрузки вопросов:", error));
   }, [navigate]);
 
-  // Таймер на вопрос
   useEffect(() => {
     if (!questions.length) return;
     setTimer(20);
@@ -58,6 +56,8 @@ export default function CoreTalentsTest() {
   const handleNext = () => {
     if (current < questions.length - 1) {
       setCurrent((prev) => prev + 1);
+    } else {
+      handleSubmit(); // ✅ Автоматическая отправка после последнего вопроса
     }
   };
 
@@ -129,6 +129,7 @@ export default function CoreTalentsTest() {
           Прогресс: {Math.round(progress)}%
         </span>
       </div>
+
       <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
         <div
           className="bg-blue-500 h-2 rounded-full transition-all duration-300"
@@ -165,7 +166,6 @@ export default function CoreTalentsTest() {
           ))}
         </div>
 
-        {/* Прогресс-бар таймера */}
         <div className="w-full h-2 bg-gray-200 rounded-full mt-4">
           <div
             className="h-full bg-orange-500 rounded-full transition-all duration-1000"
@@ -182,7 +182,7 @@ export default function CoreTalentsTest() {
           ✅ Завершить тест
         </button>
 
-        {answers[q.position] !== undefined && current < questions.length - 1 && (
+        {answers[q.position] !== undefined && current < questions.length && (
           <button
             onClick={handleNext}
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
@@ -203,5 +203,3 @@ export default function CoreTalentsTest() {
     </div>
   );
 }
-
-

@@ -1,7 +1,8 @@
+// src/components/AddHabitModal.tsx
 import { useEffect, useState } from "react";
 import axios from "axios";
-const API_URL = import.meta.env.VITE_API_URL;
 
+const API_URL = import.meta.env.VITE_API_URL;
 
 interface HabitTemplate {
   id: number;
@@ -23,17 +24,21 @@ const AddHabitModal = ({ isOpen, onClose, onAdded }: Props) => {
   const [custom, setCustom] = useState(false);
   const [customTitle, setCustomTitle] = useState("");
 
-  const fetchTemplates = async () => {
-    const token = localStorage.getItem("token");
-    const res = await axios.get("${API_URL}/habits", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setTemplates(res.data);
-  };
-
   useEffect(() => {
     if (isOpen) fetchTemplates();
   }, [isOpen]);
+
+  const fetchTemplates = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get(`${API_URL}/habits`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setTemplates(res.data);
+    } catch (error) {
+      console.error("❌ Ошибка загрузки шаблонов привычек:", error);
+    }
+  };
 
   const toggleDay = (day: number) => {
     setDays((prev) =>
@@ -42,30 +47,37 @@ const AddHabitModal = ({ isOpen, onClose, onAdded }: Props) => {
   };
 
   const addHabit = async () => {
-    const token = localStorage.getItem("token");
+    try {
+      const token = localStorage.getItem("token");
+      let habitId = selectedHabitId;
 
-    let habitId = selectedHabitId;
+      // если пользователь создаёт свою привычку
+      if (custom && customTitle.trim() !== "") {
+        const res = await axios.post(
+          `${API_URL}/habits`,
+          { title: customTitle },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        habitId = res.data.habit.id;
+      }
 
-    // если пользователь создаёт свою
-    if (custom && customTitle.trim() !== "") {
-      const res = await axios.post(
-        "${API_URL}/habits",
-        { title: customTitle },
+      if (!habitId || days.length === 0) return;
+
+      await axios.post(
+        `${API_URL}/habits/my`,
+        { habit_id: habitId, days },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      habitId = res.data.habit.id;
+
+      onAdded();
+      onClose();
+      resetForm();
+    } catch (error) {
+      console.error("❌ Ошибка добавления привычки:", error);
     }
+  };
 
-    if (!habitId || days.length === 0) return;
-
-    await axios.post(
-      "${API_URL}/habits/my",
-      { habit_id: habitId, days },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-
-    onAdded();
-    onClose();
+  const resetForm = () => {
     setSelectedHabitId(null);
     setCustom(false);
     setCustomTitle("");
@@ -78,11 +90,11 @@ const AddHabitModal = ({ isOpen, onClose, onAdded }: Props) => {
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl w-[90%] max-w-md p-6">
-        <h2 className="text-lg font-bold mb-4">➕ Добавить привычку</h2>
+      <div className="bg-white rounded-xl shadow-xl w-[90%] max-w-md p-6 space-y-6">
+        <h2 className="text-lg font-bold">➕ Добавить привычку</h2>
 
-        <div className="mb-4">
-          <label className="flex items-center gap-2 mb-2">
+        <div>
+          <label className="flex items-center gap-2">
             <input
               type="checkbox"
               checked={custom}
@@ -93,13 +105,13 @@ const AddHabitModal = ({ isOpen, onClose, onAdded }: Props) => {
 
           {!custom ? (
             <>
-              <label className="block mb-1 font-medium">Шаблон:</label>
+              <label className="block mt-4 mb-1 font-medium">Выберите шаблон:</label>
               <select
                 value={selectedHabitId ?? ""}
                 onChange={(e) => setSelectedHabitId(Number(e.target.value))}
                 className="w-full border px-3 py-2 rounded"
               >
-                <option value="">— Выбери —</option>
+                <option value="">— Выберите —</option>
                 {templates.map((habit) => (
                   <option key={habit.id} value={habit.id}>
                     {habit.title}
@@ -109,48 +121,50 @@ const AddHabitModal = ({ isOpen, onClose, onAdded }: Props) => {
             </>
           ) : (
             <>
-              <label className="block mb-1 font-medium">Название:</label>
+              <label className="block mt-4 mb-1 font-medium">Название новой привычки:</label>
               <input
                 type="text"
                 value={customTitle}
                 onChange={(e) => setCustomTitle(e.target.value)}
-                placeholder="Например: Пить воду"
+                placeholder="Например: Пить воду каждое утро"
                 className="w-full border px-3 py-2 rounded"
               />
             </>
           )}
         </div>
 
-        <label className="block mb-2 font-medium">Повторяется в дни:</label>
-        <div className="flex gap-2 flex-wrap mb-4">
-          {dayLabels.map((label, index) => (
-            <button
-              key={index}
-              className={`px-3 py-1 border rounded-full text-sm ${
-                days.includes(index)
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700"
-              }`}
-              onClick={() => toggleDay(index)}
-              type="button"
-            >
-              {label}
-            </button>
-          ))}
+        <div>
+          <label className="block mb-2 font-medium">Повторяется в дни недели:</label>
+          <div className="flex gap-2 flex-wrap">
+            {dayLabels.map((label, index) => (
+              <button
+                key={index}
+                type="button"
+                className={`px-3 py-1 rounded-full text-sm border ${
+                  days.includes(index)
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 text-gray-700"
+                }`}
+                onClick={() => toggleDay(index)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="flex justify-end gap-3 mt-6">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
+            className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400"
           >
-            Отмена
+            ❌ Отмена
           </button>
           <button
             onClick={addHabit}
             className="px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700"
           >
-            Добавить
+            ➕ Добавить
           </button>
         </div>
       </div>
@@ -159,5 +173,3 @@ const AddHabitModal = ({ isOpen, onClose, onAdded }: Props) => {
 };
 
 export default AddHabitModal;
-
-

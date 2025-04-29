@@ -58,17 +58,20 @@ const MBTITest = () => {
     newAnswers[currentIndex] = newAnswer;
     setAnswers(newAnswers);
 
-    if (currentIndex + 1 < questions.length) {
+    // Если это последний вопрос, отправляем тест
+    if (currentIndex + 1 >= questions.length) {
+      handleSubmit(newAnswers);
+    } else {
       setCurrentIndex((idx) => idx + 1);
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = (finalAnswers = answers) => {
     const token = localStorage.getItem("token");
     axios
       .post(
         `${API_URL}/mbti/submit`,
-        { answers },
+        { answers: finalAnswers },
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -91,8 +94,7 @@ const MBTITest = () => {
       <div className="text-center">
         <h2 className="text-2xl font-bold">🧠 MBTI-тест</h2>
         <p>
-          Вопрос {currentIndex + 1} из {questions.length} | ⏱️{" "}
-          {progress.toFixed(1)}%
+          Вопрос {currentIndex + 1} из {questions.length} | ⏱️ {progress.toFixed(1)}%
         </p>
       </div>
 
@@ -138,7 +140,7 @@ const MBTITest = () => {
 
         {currentIndex === questions.length - 1 && (
           <button
-            onClick={handleSubmit}
+            onClick={() => handleSubmit()}
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
           >
             ✅ Завершить тест
@@ -150,5 +152,3 @@ const MBTITest = () => {
 };
 
 export default MBTITest;
-
-

@@ -19,21 +19,25 @@ const HeroProfessions: React.FC = () => {
     const fetchProfessions = async () => {
       try {
         const token = localStorage.getItem("token");
+        if (!token) throw new Error("Пользователь не авторизован.");
+
         const response = await axios.get(`${API_URL}/hero/professions`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
+
         if (!Array.isArray(response.data)) {
-          throw new Error("Ответ от сервера не является массивом");
+          throw new Error("Ответ от сервера не является массивом.");
         }
+
         setProfessions(response.data);
       } catch (error: any) {
-        console.error("Ошибка при загрузке профессий:", error);
-        if (error.response && error.response.data && error.response.data.detail) {
+        console.error("❌ Ошибка при загрузке профессий:", error);
+        if (error.response?.data?.detail) {
           setError(error.response.data.detail);
         } else {
-          setError("Не удалось загрузить список профессий.");
+          setError("Не удалось загрузить список профессий. Проверьте подключение.");
         }
       } finally {
         setLoading(false);
@@ -43,29 +47,51 @@ const HeroProfessions: React.FC = () => {
     fetchProfessions();
   }, []);
 
-  if (loading) return <p>⏳ Загружаем профессии...</p>;
+  if (loading) {
+    return (
+      <div className="p-6 text-center text-gray-500">
+        ⏳ Загружаем подборку профессий...
+      </div>
+    );
+  }
 
   if (error) {
     if (error.includes("Профиль пользователя неполный")) {
       return (
-        <p className="text-red-500 text-center mt-6">
+        <div className="p-6 text-center text-red-500 space-y-2">
           🔥 Чтобы увидеть подборку профессий, пожалуйста, пройдите все 3 теста:
           <br />
-          <strong>CoreTalents, Big Five и MBTI</strong>!
-        </p>
+          <strong>CoreTalents, Big Five и MBTI!</strong>
+        </div>
       );
     }
-    return <p className="text-red-500">❌ {error}</p>;
+    return (
+      <div className="p-6 text-center text-red-500">
+        ❌ {error}
+      </div>
+    );
   }
 
-  if (professions.length === 0) return <p>😕 Пока нет подходящих профессий</p>;
+  if (professions.length === 0) {
+    return (
+      <div className="p-6 text-center text-gray-500">
+        😕 Пока нет подходящих профессий для отображения.
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-white p-4 rounded-2xl shadow-md mt-6">
-      <h2 className="text-xl font-bold mb-3">🎯 Подходящие профессии</h2>
-      <ul className="space-y-4">
+    <div className="bg-white p-6 rounded-2xl shadow-md">
+      <h2 className="text-2xl font-bold mb-6 text-center text-blue-800">
+        🎯 Подходящие профессии
+      </h2>
+
+      <ul className="space-y-6">
         {professions.map((p) => (
-          <li key={p.name} className="border-l-4 border-blue-500 pl-3">
+          <li
+            key={p.name}
+            className="border-l-4 border-blue-500 pl-4 py-2 bg-gray-50 rounded-lg"
+          >
             <div className="text-lg font-semibold">
               {p.emoji} {p.name}
             </div>

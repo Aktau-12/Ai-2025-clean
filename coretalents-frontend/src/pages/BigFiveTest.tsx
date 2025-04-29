@@ -4,7 +4,6 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import BigFiveResults from "./BigFiveResults";
 
-// Берём базовый URL из env
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function BigFiveTest() {
@@ -16,7 +15,6 @@ export default function BigFiveTest() {
   const [timer, setTimer] = useState(20);
   const navigate = useNavigate();
 
-  // Загрузка вопросов
   useEffect(() => {
     axios
       .get(`${API_URL}/tests/2/questions`, {
@@ -28,7 +26,6 @@ export default function BigFiveTest() {
       .catch((err) => console.error("❌ Ошибка загрузки вопросов:", err));
   }, [navigate]);
 
-  // Таймер на каждый вопрос
   useEffect(() => {
     if (!questions.length) return;
     setTimer(20);
@@ -36,7 +33,7 @@ export default function BigFiveTest() {
       setTimer((prev) => {
         if (prev <= 1) {
           clearInterval(countdown);
-          handleNext();
+          handleNext(); // автоматически переключаемся
           return 0;
         }
         return prev - 1;
@@ -79,7 +76,7 @@ export default function BigFiveTest() {
     if (current < questions.length - 1) {
       setCurrent((prev) => prev + 1);
     } else {
-      handleSubmit();
+      handleSubmit(); // ⬅️ автоматическое завершение
     }
   };
 
@@ -107,7 +104,6 @@ export default function BigFiveTest() {
     }
   };
 
-  // Отображение результата
   if (submitted && result) {
     return (
       <div className="p-6 text-center">
@@ -141,7 +137,6 @@ export default function BigFiveTest() {
     <div className="max-w-2xl mx-auto mt-10 p-6">
       <h1 className="text-2xl font-bold mb-4">🧠 Big Five Test</h1>
 
-      {/* Таймер и прогресс */}
       <div className="flex justify-between items-center mb-4 text-sm text-gray-600">
         <div>
           ⏳ Осталось: <span className="font-bold">{timer}</span> сек
@@ -177,7 +172,6 @@ export default function BigFiveTest() {
           ))}
         </div>
 
-        {/* Прогресс-бар таймера */}
         <div className="w-full h-2 bg-gray-200 rounded-full mt-2">
           <div
             className="h-full bg-orange-500 rounded-full transition-all duration-1000"
@@ -194,7 +188,7 @@ export default function BigFiveTest() {
           ✅ Завершить тест
         </button>
 
-        {answers[q.id] !== undefined && current < questions.length - 1 && (
+        {answers[q.id] !== undefined && current < questions.length && (
           <button
             onClick={handleNext}
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
@@ -206,5 +200,4 @@ export default function BigFiveTest() {
     </div>
   );
 }
-
 

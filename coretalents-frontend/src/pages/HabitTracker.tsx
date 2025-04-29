@@ -1,4 +1,3 @@
-// src/pages/HabitTracker.tsx
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -26,12 +25,16 @@ export default function HabitTracker() {
   const fetchHabits = async () => {
     try {
       const token = localStorage.getItem("token");
+      if (!token) {
+        navigate("/login");
+        return;
+      }
       const res = await axios.get(`${API_URL}/habits/my`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setHabits(res.data);
+      setHabits(res.data || []);
     } catch (err) {
-      console.error("Ошибка при загрузке привычек:", err);
+      console.error("❌ Ошибка при загрузке привычек:", err);
     } finally {
       setLoading(false);
     }
@@ -40,6 +43,10 @@ export default function HabitTracker() {
   const markAsDone = async (habitId: number) => {
     try {
       const token = localStorage.getItem("token");
+      if (!token) {
+        navigate("/login");
+        return;
+      }
       await axios.post(
         `${API_URL}/habits/my/${habitId}/check`,
         {},
@@ -53,7 +60,7 @@ export default function HabitTracker() {
         )
       );
     } catch (err) {
-      console.error("Ошибка при отметке привычки:", err);
+      console.error("❌ Ошибка при отметке выполнения привычки:", err);
     }
   };
 
@@ -74,8 +81,8 @@ export default function HabitTracker() {
         </button>
       </div>
 
-      {/* 🔁 Модель формирования привычки */}
-      <div className="mb-10 bg-[#f3f4f6] rounded-2xl p-6 shadow">
+      {/* 🔁 Как формируются привычки */}
+      <div className="mb-10 bg-gray-100 rounded-2xl p-6 shadow">
         <h3 className="text-xl font-semibold mb-4">🔁 Как формируются привычки?</h3>
         <div className="flex flex-col md:flex-row items-center gap-6">
           <img
@@ -85,7 +92,7 @@ export default function HabitTracker() {
           />
           <ul className="text-gray-700 text-sm leading-relaxed space-y-2">
             <li>1️⃣ <b>Триггер</b> — напоминание о действии.</li>
-            <li>2️⃣ <b>Действие</b> — сама привычка.</li>
+            <li>2️⃣ <b>Действие</b> — выполнение привычки.</li>
             <li>3️⃣ <b>Награда</b> — радость, XP и прогресс.</li>
           </ul>
         </div>
@@ -106,8 +113,8 @@ export default function HabitTracker() {
         <p className="text-gray-500 text-center">⏳ Загрузка привычек...</p>
       ) : habits.length === 0 ? (
         <div className="text-center text-gray-600 mt-10">
-          <p>У вас пока нет привычек 😔</p>
-          <p>Добавьте первую привычку для старта роста!</p>
+          <p>😔 У вас пока нет привычек</p>
+          <p>Добавьте первую привычку для начала роста!</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
