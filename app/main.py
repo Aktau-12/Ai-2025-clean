@@ -13,10 +13,22 @@ print(f"✅ Loaded .env from: {env_path}")
 
 # ─── 2. Выполнение миграций Alembic ────────────────────────────────────────
 try:
-    subprocess.run(["alembic", "upgrade", "head"], check=True)
-    print("✅ Alembic migrations applied successfully")
-except subprocess.CalledProcessError as e:
-    print(f"❌ Error applying Alembic migrations: {e}")
+    result = subprocess.run(
+        ["alembic", "upgrade", "head"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True
+    )
+    if result.returncode == 0:
+        print("✅ Alembic migrations applied successfully")
+    else:
+        errs = result.stderr.lower()
+        if 'already exists' in errs:
+            print("⚠️ Некоторые таблицы уже существуют, пропускаем их создание.")
+        else:
+            print(f"❌ Error applying Alembic migrations: {result.stderr}")
+except Exception as e:
+    print(f"❌ Unexpected error during migrations: {e}")
 
 # ─── 3. Инициализация FastAPI приложения ───────────────────────────────────
 app = FastAPI(
