@@ -16,26 +16,13 @@ class User(Base):
     archetype = Column(String, nullable=True)
     xp = Column(Integer, default=0)
 
-    # Один-к-одному: прогресс героя (XP)
+    # Связи
     hero_progress = relationship(UserHeroProgress, back_populates="user", uselist=False)
-
-    # Один-ко-многим: шаги пути героя
     hero_step_progress = relationship(UserHeroStep, back_populates="user")
-
-    # Один-ко-многим: результаты тестов
     results = relationship("UserResult", back_populates="user")
 
-    # ✅ Новый блок: один-ко-многим — ThinkingAlgorithm (алгоритм мышления)
-    thinking_entries = relationship(
-        "ThinkingAlgorithm", back_populates="user", cascade="all, delete"
-    )
-
-    # ✅ Новый блок: один-ко-многим — LifeWheel (колесо жизни)
-    life_wheel_entries = relationship(
-        "LifeWheelResult", back_populates="user", cascade="all, delete"
-    )
+    thinking_entries = relationship("ThinkingAlgorithm", back_populates="user", cascade="all, delete")
+    life_wheel_entries = relationship("LifeWheel", back_populates="user", cascade="all, delete")
 
     def __repr__(self):
-        return (
-            f"<User(id={self.id}, email={self.email}, name={self.name}, created_at={self.created_at})>"
-        )
+        return f"<User(id={self.id}, email={self.email}, name={self.name}, created_at={self.created_at})>"
