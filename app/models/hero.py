@@ -13,7 +13,7 @@ class UserHeroStep(Base):
     completed = Column(Boolean, default=False)
     timestamp = Column(DateTime, default=datetime.utcnow)
 
-    user = relationship("User", back_populates="hero_step_progress")  # ✅ исправлено
+    user = relationship("User", back_populates="hero_step_progress")  # Связь с пользователем
 
 
 # 🧬 Таблица XP пользователя
