@@ -22,7 +22,8 @@ app = FastAPI(
 # 🌐 Настройка CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # ✅ Разрешаем все источники для упрощения разработки
+    allow_origins=["https://ai-2025-clean-1.onrender.com"],  # ← твой frontend
+  # ✅ Разрешаем все источники для упрощения разработки
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

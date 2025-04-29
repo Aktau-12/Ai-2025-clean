@@ -30,7 +30,7 @@ def add_xp(user_id: int, db: Session, amount: int = 20):
         db.add(progress)
     db.commit()
 
-# Загружаем mapping вопросов → талантов
+# Загрузка маппинга талантов
 mapping = {}
 mapping_path = Path(__file__).resolve().parent.parent / "data" / "coretalents_question_mapping.json"
 if mapping_path.exists():
@@ -40,148 +40,69 @@ if mapping_path.exists():
     except Exception:
         mapping = {}
 
-# --- ТЕСТЫ ----
-@router.get("/")
-def get_tests(db: Session = Depends(get_db)):
-    return []
-
-@router.get("/coretalents")
-def get_coretalents_questions(db: Session = Depends(get_db)):
-    questions = db.query(CoreQuestion).order_by(CoreQuestion.position).all()
-    return [{"id": q.id, "question_a": q.question_a, "question_b": q.question_b, "position": q.position} for q in questions]
-
-@router.get("/1/results")
-@router.get("/coretalents/results")
-def get_coretalents_results(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    result = db.query(UserResult).filter(UserResult.user_id == user.id, UserResult.test_id == 1).order_by(UserResult.id.desc()).first()
-    if not result:
-        return {"answers": {}, "scores": {}}  # Возвращаем пустые данные вместо ошибки
-
-    def safe_parse(value):
-        if isinstance(value, str):
-            try:
-                return json.loads(value)
-            except json.JSONDecodeError:
-                return {}
-        if isinstance(value, (dict, list)):
-            return value
-        return {}
-
-    answers = safe_parse(result.answers)
-    scores = safe_parse(result.score)
-
-    return {"answers": answers, "scores": scores}
-
-# --- CORE DATA LOAD ---
 coretalents_data = {}
 coretalents_path = Path(__file__).resolve().parent.parent / "data" / "coretalents_results_data_full.json"
 if coretalents_path.exists():
     raw = json.loads(coretalents_path.read_text(encoding="utf-8"))
     coretalents_data = {str(item["id"]): item for item in raw} if isinstance(raw, list) else raw
 
-@router.get("/my-results")
-def get_my_results(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    results = []
-
-    # CoreTalents summary
-    core = db.query(UserResult).filter(UserResult.user_id == user.id, UserResult.test_id == 1).order_by(UserResult.timestamp.desc()).first()
-    if core:
-        try:
-            answers = json.loads(core.answers) if isinstance(core.answers, str) else core.answers
-        except Exception:
-            answers = {}
-        if answers:
-            top_ids = sorted(answers.items(), key=lambda x: x[1], reverse=True)[:5]
-            names = [coretalents_data.get(str(tid), {}).get("name", f"Талант {tid}") for tid, _ in top_ids]
-            summary_text = ", ".join(names)
-        else:
-            summary_text = "Нет данных"
-        results.append({
-            "test_name": "CoreTalents 34",
-            "result_id": core.id,
-            "answers_count": len(answers),
-            "score": core.score,
-            "completed_at": core.timestamp.isoformat() if core.timestamp else None,
-            "summary": f"Топ 5 талантов: {summary_text}"
-        })
-
-    # Big Five summary
-    big = db.query(UserResult).filter(UserResult.user_id == user.id, UserResult.test_id == 2).order_by(UserResult.timestamp.desc()).first()
-    if big:
-        try:
-            parsed_big = json.loads(big.answers) if isinstance(big.answers, str) else big.answers
-        except Exception:
-            parsed_big = {}
-        if parsed_big:
-            scores_str = f"O: {parsed_big.get('O')}, C: {parsed_big.get('C')}, E: {parsed_big.get('E')}, A: {parsed_big.get('A')}, N: {parsed_big.get('N')}"
-            descs = []
-            descs.append("открыт к новому" if parsed_big.get("O", 0) >= 3 else "предпочитает стабильность")
-            descs.append("организованный и надёжный" if parsed_big.get("C", 0) >= 3 else "гибкий и творческий")
-            descs.append("энергичный и общительный" if parsed_big.get("E", 0) >= 3 else "спокойный и наблюдательный")
-            descs.append("доброжелательный и вежливый" if parsed_big.get("A", 0) >= 3 else "прямой и критичный")
-            descs.append("эмоционально чувствительный" if parsed_big.get("N", 0) >= 3 else "уравновешенный и стрессоустойчивый")
-            full_desc = f"{scores_str}\nТы — {', '.join(descs)} человек."
-        else:
-            full_desc = "Нет данных по Big Five."
-        results.append({
-            "test_name": "Big Five",
-            "result_id": big.id,
-            "answers_count": len(parsed_big),
-            "score": big.score,
-            "completed_at": big.timestamp.isoformat() if big.timestamp else None,
-            "summary": full_desc
-        })
-
-    # MBTI summary
-    if user.mbti_type:
-        count = db.query(MBTIAnswer).filter(MBTIAnswer.user_id == user.id).count()
-        mbti_result = db.query(MBTIResult).filter(MBTIResult.type_code == user.mbti_type).first()
-        mbti_summary = f"Тип: {user.mbti_type}"
-        if mbti_result and mbti_result.description:
-            mbti_summary += f" — {mbti_result.description}"
-        results.append({
-            "test_name": "MBTI",
-            "result_id": f"MBTI-{user.id}",
-            "answers_count": count,
-            "score": user.mbti_type,
-            "completed_at": datetime.utcnow().isoformat(),
-            "summary": mbti_summary
-        })
-
-    return results
-
-# --- Questions ---
-@router.get("/{test_id}/questions")
-def get_test_questions(test_id: int, db: Session = Depends(get_db)):
-    if test_id == 1:
-        qs = db.query(CoreQuestion).order_by(CoreQuestion.position).all()
-        return [{"id": q.id, "question_a": q.question_a, "question_b": q.question_b, "position": q.position} for q in qs]
-    if test_id == 2:
-        qs = db.query(Question).filter(Question.test_id == 2).order_by(Question.position).all()
-        return [{"id": q.id, "text": q.text, "position": q.position} for q in qs]
-    raise HTTPException(status_code=404, detail="Вопросы для указанного теста не найдены")
-
-# --- Submissions ---
+# --- Модели ---
 class CoreTalentsSubmission(BaseModel):
     answers: dict[int, int]
-
-@router.post("/1/submit")
-def submit_coretalents(submission: CoreTalentsSubmission, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    scores = {i: 0 for i in range(1, 35)}
-    for q_id, ans in submission.answers.items():
-        tal = mapping.get(q_id)
-        if tal:
-            scores[tal] += ans
-    res = UserResult(user_id=user.id, test_id=1, answers=json.dumps(submission.answers), score=json.dumps(scores))
-    db.add(res)
-    db.commit()
-    add_xp(user.id, db, amount=50)
-    return {"message": "CoreTalents submitted successfully", "result_id": res.id}
 
 class BigFiveSubmission(BaseModel):
     answers: list[dict]
     result: dict
 
+# --- Получение тестов ---
+@router.get("/")
+def get_tests(db: Session = Depends(get_db)):
+    return []
+
+# --- Вопросы ---
+@router.get("/coretalents")
+def get_coretalents_questions(db: Session = Depends(get_db)):
+    questions = db.query(CoreQuestion).order_by(CoreQuestion.position).all()
+    return [{"id": q.id, "question_a": q.question_a, "question_b": q.question_b, "position": q.position} for q in questions]
+
+@router.get("/{test_id}/questions")
+def get_test_questions(test_id: int, db: Session = Depends(get_db)):
+    if test_id == 1:
+        return get_coretalents_questions(db)
+    if test_id == 2:
+        qs = db.query(Question).filter(Question.test_id == 2).order_by(Question.position).all()
+        return [{"id": q.id, "text": q.text, "position": q.position} for q in qs]
+    raise HTTPException(status_code=404, detail="Вопросы не найдены")
+
+# --- CoreTalents Submit ---
+@router.post("/1/submit")
+def submit_coretalents(submission: CoreTalentsSubmission, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if not isinstance(submission.answers, dict):
+        raise HTTPException(status_code=400, detail="answers должен быть dict[int, int]")
+
+    scores = {i: 0 for i in range(1, 35)}
+    for q_id, ans in submission.answers.items():
+        try:
+            q_id = int(q_id)
+            ans = int(ans)
+        except:
+            continue
+        talent_id = mapping.get(q_id)
+        if talent_id:
+            scores[talent_id] += ans
+
+    res = UserResult(
+        user_id=user.id,
+        test_id=1,
+        answers=json.dumps(submission.answers),
+        score=json.dumps(scores)
+    )
+    db.add(res)
+    db.commit()
+    add_xp(user.id, db, amount=50)
+    return {"message": "CoreTalents submitted successfully", "result_id": res.id}
+
+# --- Big Five / MBTI Submit ---
 @router.post("/{test_id}/submit")
 def submit_test_answers(test_id: int, submission: BigFiveSubmission, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     res = UserResult(user_id=user.id, test_id=test_id, answers=json.dumps(submission.result), score=0)
@@ -193,7 +114,28 @@ def submit_test_answers(test_id: int, submission: BigFiveSubmission, user: User 
         add_xp(user.id, db, amount=20)
     return {"message": f"Test {test_id} submitted!", "result_id": res.id}
 
-# --- Big Five results ---
+# --- CoreTalents Results ---
+@router.get("/1/results")
+@router.get("/coretalents/results")
+def get_coretalents_results(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    result = db.query(UserResult).filter(UserResult.user_id == user.id, UserResult.test_id == 1).order_by(UserResult.id.desc()).first()
+    if not result:
+        return {"answers": {}, "scores": {}}
+
+    def safe_parse(val):
+        if isinstance(val, str):
+            try:
+                return json.loads(val)
+            except:
+                return {}
+        return val if isinstance(val, dict) else {}
+
+    return {
+        "answers": safe_parse(result.answers),
+        "scores": safe_parse(result.score)
+    }
+
+# --- Big Five Results ---
 @router.get("/2/result")
 def get_bigfive_result(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     result = db.query(UserResult).filter(UserResult.user_id == user.id, UserResult.test_id == 2).order_by(UserResult.id.desc()).first()
@@ -203,3 +145,54 @@ def get_bigfive_result(user: User = Depends(get_current_user), db: Session = Dep
     if isinstance(parsed, dict) and all(k in parsed for k in ["O", "C", "E", "A", "N"]):
         return parsed
     raise HTTPException(status_code=400, detail="Неверный формат результата")
+
+# --- Сводка по всем тестам ---
+@router.get("/my-results")
+def get_my_results(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    results = []
+
+    # CoreTalents
+    core = db.query(UserResult).filter(UserResult.user_id == user.id, UserResult.test_id == 1).order_by(UserResult.timestamp.desc()).first()
+    if core:
+        answers = json.loads(core.answers) if isinstance(core.answers, str) else core.answers
+        top_ids = sorted(answers.items(), key=lambda x: x[1], reverse=True)[:5]
+        names = [coretalents_data.get(str(tid), {}).get("name", f"Талант {tid}") for tid, _ in top_ids]
+        summary_text = ", ".join(names)
+        results.append({
+            "test_name": "CoreTalents 34",
+            "result_id": core.id,
+            "answers_count": len(answers),
+            "score": core.score,
+            "completed_at": core.timestamp.isoformat(),
+            "summary": f"Топ 5 талантов: {summary_text}"
+        })
+
+    # Big Five
+    big = db.query(UserResult).filter(UserResult.user_id == user.id, UserResult.test_id == 2).order_by(UserResult.timestamp.desc()).first()
+    if big:
+        parsed_big = json.loads(big.answers) if isinstance(big.answers, str) else big.answers
+        scores_str = f"O: {parsed_big.get('O')}, C: {parsed_big.get('C')}, E: {parsed_big.get('E')}, A: {parsed_big.get('A')}, N: {parsed_big.get('N')}"
+        results.append({
+            "test_name": "Big Five",
+            "result_id": big.id,
+            "answers_count": len(parsed_big),
+            "score": big.score,
+            "completed_at": big.timestamp.isoformat(),
+            "summary": scores_str
+        })
+
+    # MBTI
+    if user.mbti_type:
+        count = db.query(MBTIAnswer).filter(MBTIAnswer.user_id == user.id).count()
+        mbti_result = db.query(MBTIResult).filter(MBTIResult.type_code == user.mbti_type).first()
+        summary = f"Тип: {user.mbti_type} — {mbti_result.description if mbti_result else ''}"
+        results.append({
+            "test_name": "MBTI",
+            "result_id": f"MBTI-{user.id}",
+            "answers_count": count,
+            "score": user.mbti_type,
+            "completed_at": datetime.utcnow().isoformat(),
+            "summary": summary
+        })
+
+    return results
