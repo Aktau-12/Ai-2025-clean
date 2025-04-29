@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, JSON, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
+from sqlalchemy.dialects.postgresql import JSONB  # ✅ правильный импорт JSONB для PostgreSQL
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.database.db import Base
@@ -37,10 +38,10 @@ class UserResult(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     test_id = Column(Integer, ForeignKey("tests.id"), nullable=False)  # ✅ связь с tests
-    answers = Column(JSON, nullable=False)
-    score = Column(Integer, nullable=True)
+    answers = Column(JSONB, nullable=False)  # ✅ исправлено на JSONB
+    score = Column(JSONB, nullable=True)     # ✅ исправлено на JSONB
     timestamp = Column(DateTime, default=datetime.utcnow)
 
     # Обратная связь на пользователя и тест
-    user = relationship(User, back_populates="results")  # ✅ изменено на прямую ссылку
+    user = relationship(User, back_populates="results")  # ✅ правильная связь
     test = relationship("Test")  # 🔁 позволяет получать данные о тесте через result.test
