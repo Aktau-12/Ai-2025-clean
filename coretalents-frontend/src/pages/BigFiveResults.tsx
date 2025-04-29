@@ -117,10 +117,12 @@ export default function BigFiveResults() {
     }))
     .sort((a, b) => b.value - a.value);
 
+  const top5 = chartData.slice(0, 5);
+
   return (
     <div className="mt-6 space-y-10 px-4">
       <div>
-        <h3 className="text-xl font-bold text-center mb-6">
+        <h3 className="text-2xl font-bold text-center mb-6">
           📈 Ваш профиль Big Five
         </h3>
 
@@ -141,21 +143,36 @@ export default function BigFiveResults() {
         </ResponsiveContainer>
       </div>
 
-      <div className="space-y-6">
-        <h3 className="text-lg font-semibold">
-          🧠 Описание ваших черт личности:
+      <div className="space-y-8">
+        <h3 className="text-xl font-semibold text-center">
+          🧠 Ваши черты личности от сильной к слабой
         </h3>
-        {chartData.map((trait, idx) => (
+
+        {top5.map((trait, idx) => (
           <div
             key={trait.trait}
-            className="p-4 border rounded-lg bg-white shadow"
+            className="p-5 border rounded-lg bg-yellow-50 shadow hover:shadow-md transition transform hover:scale-105"
           >
-            <h4 className="text-purple-700 font-bold mb-2">
-              {idx + 1}. {trait.label}
+            <h4 className="text-yellow-800 font-bold text-lg mb-2">
+              {idx + 1}. {trait.label} ({trait.value})
             </h4>
-            <p className="text-gray-700">{trait.description}</p>
+            <p className="text-yellow-700">{trait.description}</p>
           </div>
         ))}
+
+        <div className="pt-8 space-y-6">
+          {chartData.slice(5).map((trait, idx) => (
+            <div
+              key={trait.trait}
+              className="p-4 border rounded-lg bg-white shadow hover:shadow-md transition"
+            >
+              <h4 className="text-purple-700 font-semibold mb-1">
+                {idx + 6}. {trait.label} ({trait.value})
+              </h4>
+              <p className="text-gray-700">{trait.description}</p>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="text-center mt-10 flex justify-center space-x-4">

@@ -48,10 +48,10 @@ export default function CoreTalentsResults() {
               name: talent?.name || `Талант ${talentId}`,
               description: talent?.description || "Описание отсутствует",
               details: talent?.details || "",
-              score,
+              score: Number(score) || 0, // Защита от NaN
             };
           })
-          .sort((a, b) => b.score - a.score); // Сортируем по убыванию баллов
+          .sort((a, b) => b.score - a.score); // Сортировка по убыванию баллов
 
         setResults(mappedResults);
       } catch (error: any) {
@@ -75,30 +75,49 @@ export default function CoreTalentsResults() {
     return <div className="p-6 text-center text-red-500">{error}</div>;
   }
 
+  const top5 = results.slice(0, 5);
+  const allTalents = results.slice(5);
+
   return (
-    <div className="space-y-4 p-6">
+    <div className="space-y-6 p-6">
       <h2 className="text-2xl font-bold text-center mb-6">
-        📋 Все 34 таланта CoreTalents
+        🏆 Ваши Топ-5 талантов
       </h2>
 
-      {results.length === 0 ? (
-        <p className="text-center text-gray-500">
-          Нет доступных результатов.
-        </p>
+      {top5.map((res, idx) => (
+        <div
+          key={res.id}
+          className="border p-4 rounded-lg shadow bg-yellow-50 hover:shadow-lg transition transform hover:scale-105"
+        >
+          <h3 className="text-lg font-semibold text-yellow-800">
+            {getNumbering(idx)} {res.name}
+          </h3>
+          <p className="text-sm text-yellow-700 mt-1">{res.description}</p>
+          {res.details && (
+            <p className="text-xs text-yellow-600 mt-2 italic">{res.details}</p>
+          )}
+          <p className="text-xs text-yellow-500 mt-2">Баллы: {res.score}</p>
+        </div>
+      ))}
+
+      <h2 className="text-2xl font-bold text-center mt-10 mb-6">
+        📋 Все 34 таланта
+      </h2>
+
+      {allTalents.length === 0 ? (
+        <p className="text-center text-gray-500">Нет доступных результатов.</p>
       ) : (
-        results.map((res, idx) => (
+        allTalents.map((res, idx) => (
           <div
             key={res.id}
             className="border p-4 rounded-lg shadow bg-white hover:shadow-lg transition"
           >
             <h3 className="text-lg font-semibold">
-              {getNumbering(idx)} {res.name}
+              {getNumbering(idx + 5)} {res.name}
             </h3>
             <p className="text-sm text-gray-700 mt-1">{res.description}</p>
             {res.details && (
-              <p className="text-xs text-gray-500 mt-2 italic">
-                {res.details}
-              </p>
+              <p className="text-xs text-gray-500 mt-2 italic">{res.details}</p>
             )}
             <p className="text-xs text-gray-400 mt-2">Баллы: {res.score}</p>
           </div>

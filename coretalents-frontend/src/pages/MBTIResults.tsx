@@ -87,6 +87,10 @@ export default function MBTIResults() {
 
   const avatarUrl = `/mbti-avatars/${result.type_code}.png`;
 
+  const sortedDetails = result.details
+    ? Object.entries(result.details).sort(([a], [b]) => a.localeCompare(b))
+    : [];
+
   return (
     <div className="p-6 max-w-2xl mx-auto mt-10 border rounded-xl shadow text-center space-y-6 bg-white">
       <h2 className="text-2xl font-bold">🎉 Ваш результат MBTI</h2>
@@ -96,7 +100,8 @@ export default function MBTIResults() {
           src={avatarUrl}
           onError={(e) => (e.currentTarget.src = "/mbti-avatars/default.png")}
           alt={result.type_code}
-          className="w-40 h-40 object-contain mb-4"
+          className="w-40 h-40 object-contain mb-4 transition-opacity duration-700 opacity-0"
+          onLoad={(e) => (e.currentTarget.style.opacity = "1")}
         />
       </div>
 
@@ -115,11 +120,11 @@ export default function MBTIResults() {
         </div>
       )}
 
-      {result.details && (
+      {sortedDetails.length > 0 && (
         <div className="text-left bg-gray-50 border rounded-lg p-4 text-sm text-gray-600">
           <h4 className="font-semibold mb-2">🧮 Баллы по шкалам:</h4>
           <ul className="grid grid-cols-2 gap-2">
-            {Object.entries(result.details).map(([trait, value]) => (
+            {sortedDetails.map(([trait, value]) => (
               <li key={trait}>
                 <strong>{trait}</strong>: {value}
               </li>

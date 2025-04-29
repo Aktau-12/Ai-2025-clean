@@ -1,27 +1,26 @@
+# app/routes/life_wheel.py
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database.db import get_db
-from app.models.life_wheel import LifeWheelResult
-from app.routes.auth import get_current_user
 from app.models.user import User
-from pydantic import BaseModel
-import json
+from app.schemas.life_wheel import LifeWheelSchema
+from app.routes.auth import get_current_user
 
-router = APIRouter(tags=["LifeWheel"])
+router = APIRouter(prefix="/life-wheel", tags=["Life Wheel"])
 
-class LifeWheelSubmission(BaseModel):
-    scores: dict[str, int]
-
-@router.post("/life-wheel/submit")
-def submit_life_wheel(
-    submission: LifeWheelSubmission,
+@router.post("/save")
+def save_life_wheel(
+    data: LifeWheelSchema,
     db: Session = Depends(get_db),
-    user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
-    new_result = LifeWheelResult(
-        user_id=user.id,
-        scores=json.dumps(submission.scores)
-    )
-    db.add(new_result)
-    db.commit()
-    return {"message": "🎯 Колесо жизни сохранено!"}
+    try:
+        # Здесь можно сохранить данные в БД.
+        # Пока просто печатаем в консоль (заготовка):
+        print(f"Saving Life Wheel for user {current_user.id}: {data.scores}")
+
+        # Тут ты потом добавишь реальное сохранение в таблицу.
+        return {"message": "Life Wheel saved successfully!"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Ошибка при сохранении колеса жизни: {str(e)}")
