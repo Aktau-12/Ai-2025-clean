@@ -3,6 +3,8 @@ from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.database.db import Base
 from app.models.hero import UserHeroProgress, UserHeroStep
+from app.models.life_wheel import LifeWheelResult
+from app.models.thinking_algorithm import ThinkingAlgorithm
 
 class User(Base):
     __tablename__ = "users"
@@ -21,8 +23,8 @@ class User(Base):
     hero_step_progress = relationship(UserHeroStep, back_populates="user")
     results = relationship("UserResult", back_populates="user")
 
-    thinking_entries = relationship("ThinkingAlgorithm", back_populates="user", cascade="all, delete")
-    life_wheel_entries = relationship("LifeWheel", back_populates="user", cascade="all, delete")
+    thinking_algorithms = relationship(ThinkingAlgorithm, back_populates="user", cascade="all, delete")
+    life_wheel_results = relationship(LifeWheelResult, back_populates="user", cascade="all, delete")
 
     def __repr__(self):
         return f"<User(id={self.id}, email={self.email}, name={self.name}, created_at={self.created_at})>"
