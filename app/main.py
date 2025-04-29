@@ -4,32 +4,33 @@ from dotenv import load_dotenv
 from pathlib import Path
 import subprocess
 
-# ✅ Загружаем .env до любых операций с переменными окружения
+# ✅ Загружаем переменные окружения из .env
 load_dotenv(Path(__file__).resolve().parent / ".env")
 
-# ✅ Выполняем alembic upgrade после загрузки .env
+# ✅ Выполняем миграции базы данных
 subprocess.run(["alembic", "upgrade", "head"], check=True)
 
 print("✅ MAIN.PY ЗАПУЩЕН")
 
-# ✅ Инициализация приложения
+# ✅ Инициализация FastAPI-приложения
 app = FastAPI(
     title="AI Profiler",
     description="🧠 Платформа для психологических тестов, саморазвития и AI-помощи",
     version="1.0.0",
 )
 
-# 🌐 Настройка CORS
+# 🌐 Настройка CORS — разрешаем только frontend Render-домены
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://ai-2025-clean-1.onrender.com"],  # ← твой frontend
-  # ✅ Разрешаем все источники для упрощения разработки
+    allow_origins=[
+        "https://ai-2025-clean-1.onrender.com"  # ← твой frontend
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# 📦 Импорт роутов
+# 📦 Импорт и подключение роутеров
 from app.routes import (
     auth,
     user,
@@ -43,7 +44,6 @@ from app.routes import (
     life_wheel,
 )
 
-# ✅ Подключение роутеров
 app.include_router(auth.router, prefix="/auth", tags=["Auth"])
 app.include_router(user.router, prefix="/users", tags=["Users"])
 app.include_router(test.router, prefix="/tests", tags=["Tests"])
@@ -53,9 +53,9 @@ app.include_router(hero.router, prefix="/hero", tags=["Hero"])
 app.include_router(rating.router, prefix="/rating", tags=["Rating"])
 app.include_router(habit.router, prefix="/habits", tags=["Habits"])
 app.include_router(thinking_algorithm.router, prefix="/thinking", tags=["Thinking Algorithm"])
-app.include_router(life_wheel.router, prefix="/life-wheel", tags=["Life Wheel"])  # ✅ Теперь всё правильно
+app.include_router(life_wheel.router, prefix="/life-wheel", tags=["Life Wheel"])
 
-# ── Поддержка GET и HEAD для корневого пути ─────────────────
+# 🔄 Корневой маршрут
 @app.api_route("/", methods=["GET", "HEAD"])
 def root():
     return {"message": "✅ AI Profiler работает!"}
