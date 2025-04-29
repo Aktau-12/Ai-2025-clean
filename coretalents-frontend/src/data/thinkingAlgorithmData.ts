@@ -8,7 +8,10 @@ export interface Node {
   result?: string;
 }
 
-const thinkingData: Node[] = [
+/**
+ * Набор узлов для алгоритма принятия решений.
+ */
+export const thinkingAlgorithmData: Node[] = [
   {
     id: "start",
     text: "Действительно ли это нужно делать?",
@@ -41,36 +44,32 @@ const thinkingData: Node[] = [
   },
   {
     id: "stop1",
+    text: "Решение:",
     result: "Откажитесь от задачи.",
-    text: "Решение:"
   },
   {
     id: "delegate",
+    text: "Решение:",
     result: "Делегируйте задачу.",
-    text: "Решение:"
   },
   {
     id: "later",
+    text: "Решение:",
     result: "Перенесите задачу на более подходящее время.",
-    text: "Решение:"
   },
   {
     id: "simplify",
+    text: "Решение:",
     result: "Упростите или сократите объём работы.",
-    text: "Решение:"
   },
   {
     id: "simpler",
+    text: "Решение:",
     result: "Выберите более эффективный способ.",
-    text: "Решение:"
   },
   {
     id: "done",
+    text: "Решение:",
     result: "Выполняйте задачу!",
-    text: "Решение:"
   },
 ];
-
-export default thinkingData;
-
-
