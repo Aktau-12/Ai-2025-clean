@@ -176,5 +176,7 @@ def get_professions_by_full_profile(user: User = Depends(get_current_user), db: 
         "bigfive": bigfive
     }
 
-    return match_professions(profile, ALL_PROFESSIONS, limit=5)
+        from fastapi.responses import JSONResponse
+    return JSONResponse(content=match_professions(profile, ALL_PROFESSIONS, limit=5))
+
 
