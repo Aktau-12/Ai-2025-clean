@@ -47,25 +47,25 @@ export default function Dashboard() {
   }, [navigate]);
 
   const tabs = [
-    { key: "tests", label: "💡 Мои тесты", description: "Пройти тесты" },
-    { key: "results", label: "📈 Результаты", description: "История и аналитика" },
-    { key: "hero", label: "🗮️ Путь героя", description: "Ваш путь развития" },
-    { key: "mentor", label: "🧙‍♂️ AI-наставник", description: "Персональные советы" },
-    { key: "professions", label: "💼 Профессии", description: "Рекомендации профессий" },
-    { key: "ranking", label: "🏆 Рейтинг", description: "Топ пользователей" },
-    { key: "habits", label: "🔄 Привычки", description: "Трекер привычек" },
-    { key: "thinking", label: "🧠 Алгоритм мышления", description: "Стратегии мышления" },
-    { key: "lifewheel", label: "📈 Колесо жизни", description: "Оценка баланса жизни" },
+    { key: "tests", label: "💡 Мои тесты", description: "Пройти тесты", color: "bg-yellow-100 text-yellow-800" },
+    { key: "results", label: "📈 Результаты", description: "История и аналитика", color: "bg-blue-100 text-blue-800" },
+    { key: "hero", label: "🗺️ Путь героя", description: "Ваш путь развития", color: "bg-green-100 text-green-800" },
+    { key: "mentor", label: "🧙‍♂️ AI-наставник", description: "Персональные советы", color: "bg-indigo-100 text-indigo-800" },
+    { key: "professions", label: "💼 Профессии", description: "Рекомендации профессий", color: "bg-pink-100 text-pink-800" },
+    { key: "ranking", label: "🏆 Рейтинг", description: "Топ пользователей", color: "bg-red-100 text-red-800" },
+    { key: "habits", label: "🔄 Привычки", description: "Трекер привычек", color: "bg-teal-100 text-teal-800" },
+    { key: "thinking", label: "🧠 Алгоритм мышления", description: "Стратегии мышления", color: "bg-purple-100 text-purple-800" },
+    { key: "lifewheel", label: "📊 Колесо жизни", description: "Баланс жизни", color: "bg-orange-100 text-orange-800" },
   ];
 
   return (
-    <div className="min-h-screen bg-gray-100 py-10 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white py-12 px-6">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-4xl font-bold text-center text-blue-800 mb-2">
+        <h1 className="text-4xl font-bold text-center text-blue-900 mb-2">
           Добро пожаловать в Проект-Я, {name || email}!
         </h1>
         {email && (
-          <p className="text-center text-gray-600 mb-8">
+          <p className="text-center text-gray-600 mb-10">
             Вы вошли как <strong>{email}</strong>
           </p>
         )}
@@ -76,16 +76,15 @@ export default function Dashboard() {
               <button
                 key={t.key}
                 onClick={() => setTab(t.key)}
-                className="bg-white rounded-2xl p-6 shadow-lg flex flex-col items-center text-center transition-transform transform hover:scale-105 hover:bg-blue-50"
+                className={`rounded-2xl p-6 shadow-md flex flex-col items-center text-center transition transform hover:scale-105 hover:shadow-xl ${t.color}`}
               >
-                <span className="text-3xl mb-2">{t.label}</span>
-                <span className="text-sm text-gray-500">{t.description}</span>
+                <div className="text-4xl mb-2">{t.label}</div>
+                <p className="text-sm">{t.description}</p>
               </button>
             ))}
           </div>
         )}
 
-        {/* Тесты */}
         {tab === "tests" && (
           <div className="flex flex-col items-center space-y-4 mt-10">
             <button onClick={() => navigate("/coretalents")} className="btn-primary">
@@ -97,13 +96,12 @@ export default function Dashboard() {
             <button onClick={() => navigate("/mbti")} className="btn-primary">
               MBTI
             </button>
-            <button onClick={() => setTab("menu")} className="btn-outline">
+            <button onClick={() => setTab("menu")} className="btn-outline mt-4">
               🔙 Назад в меню
             </button>
           </div>
         )}
 
-        {/* Результаты */}
         {tab === "results" && (
           <div className="space-y-6 mt-8">
             {mbtiType && (
@@ -116,7 +114,7 @@ export default function Dashboard() {
                 <p className="text-blue-700 font-semibold">Ваш MBTI тип: {mbtiType}</p>
               </div>
             )}
-            <h3 className="text-xl font-semibold">История прохождения тестов:</h3>
+            <h3 className="text-xl font-semibold text-center">История прохождения тестов</h3>
             {results.length === 0 ? (
               <p className="text-center text-gray-500">Нет пройденных тестов.</p>
             ) : (
@@ -146,13 +144,14 @@ export default function Dashboard() {
                 </div>
               ))
             )}
-            <button onClick={() => setTab("menu")} className="btn-outline">
-              🔙 Назад в меню
-            </button>
+            <div className="text-center">
+              <button onClick={() => setTab("menu")} className="btn-outline mt-6">
+                🔙 Назад в меню
+              </button>
+            </div>
           </div>
         )}
 
-        {/* Путь героя */}
         {tab === "hero" && (
           <div className="mt-8">
             <HeroPath />
@@ -162,7 +161,6 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Профессии */}
         {tab === "professions" && (
           <div className="mt-8">
             <HeroProfessions />
@@ -172,7 +170,6 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Рейтинг */}
         {tab === "ranking" && (
           <div className="mt-8">
             <Ranking />
@@ -182,7 +179,6 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Привычки */}
         {tab === "habits" && (
           <div className="mt-8">
             <HabitTracker />
@@ -192,7 +188,6 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Алгоритм мышления */}
         {tab === "thinking" && (
           <div className="mt-8">
             <ThinkingAlgorithm />
@@ -202,7 +197,6 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Колесо жизни */}
         {tab === "lifewheel" && (
           <div className="mt-8">
             <LifeWheel />
@@ -212,7 +206,6 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Выход */}
         <div className="text-center pt-10">
           <button
             onClick={() => {
