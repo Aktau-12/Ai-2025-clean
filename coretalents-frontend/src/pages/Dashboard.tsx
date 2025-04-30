@@ -46,18 +46,6 @@ export default function Dashboard() {
       });
   }, [navigate]);
 
-  const tabs = [
-    { key: "tests", label: "💡 Мои тесты", description: "Пройти тесты", color: "bg-yellow-100 text-yellow-800" },
-    { key: "results", label: "📈 Результаты", description: "История и аналитика", color: "bg-blue-100 text-blue-800" },
-    { key: "hero", label: "🗺️ Путь героя", description: "Ваш путь развития", color: "bg-green-100 text-green-800" },
-    { key: "mentor", label: "🧙‍♂️ AI-наставник", description: "Персональные советы", color: "bg-indigo-100 text-indigo-800" },
-    { key: "professions", label: "💼 Профессии", description: "Рекомендации профессий", color: "bg-pink-100 text-pink-800" },
-    { key: "ranking", label: "🏆 Рейтинг", description: "Топ пользователей", color: "bg-red-100 text-red-800" },
-    { key: "habits", label: "🔄 Привычки", description: "Трекер привычек", color: "bg-teal-100 text-teal-800" },
-    { key: "thinking", label: "🧠 Алгоритм мышления", description: "Стратегии мышления", color: "bg-purple-100 text-purple-800" },
-    { key: "lifewheel", label: "📊 Колесо жизни", description: "Баланс жизни", color: "bg-orange-100 text-orange-800" },
-  ];
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white py-12 px-6">
       <div className="max-w-6xl mx-auto">
@@ -71,18 +59,48 @@ export default function Dashboard() {
         )}
 
         {tab === "menu" && (
-          <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
-            {tabs.map((t) => (
+          <>
+            <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 mt-8">
+              {[
+                { key: "tests", icon: "💡", title: "CoreTalents 34", subtitle: "Пройти тесты не вражденные к талантов" },
+                { key: "bigfive", icon: "📊", title: "Big Five", subtitle: "Пройти личностный тест" },
+                { key: "mbti", icon: "🔍", title: "MBTI", subtitle: "Тип личности" },
+                { key: "lifewheel", icon: "📈", title: "Колесо жизни", subtitle: "Оценка сфер жизни" },
+                { key: "hero", icon: "🗺️", title: "Путь героя", subtitle: "Ваш путь развития" },
+                { key: "mentor", icon: "🤖", title: "AI-наставник", subtitle: "Советы от ИИ" },
+                { key: "habits", icon: "✅", title: "Привычки", subtitle: "Трекер привычек" },
+                { key: "professions", icon: "🎯", title: "Профессии", subtitle: "Навигатор профессий" },
+                { key: "ranking", icon: "🏆", title: "Рейтинг", subtitle: "Ваш прогресс среди других" },
+                { key: "thinking", icon: "🧠", title: "Алгоритмы мышления", subtitle: "Инструменты мышления" },
+              ].map((item) => (
+                <button
+                  key={item.key}
+                  onClick={() => {
+                    if (item.key === "bigfive") navigate("/bigfive");
+                    else if (item.key === "mbti") navigate("/mbti");
+                    else setTab(item.key);
+                  }}
+                  className="bg-white p-5 rounded-2xl shadow hover:shadow-md transition flex flex-col items-start text-left hover:bg-blue-50"
+                >
+                  <div className="text-4xl">{item.icon}</div>
+                  <div className="text-lg font-semibold mt-2">{item.title}</div>
+                  <div className="text-sm text-gray-500">{item.subtitle}</div>
+                </button>
+              ))}
+            </div>
+
+            <div className="flex justify-center mt-12">
               <button
-                key={t.key}
-                onClick={() => setTab(t.key)}
-                className={`rounded-2xl p-6 shadow-md flex flex-col items-center text-center transition transform hover:scale-105 hover:shadow-xl ${t.color}`}
+                onClick={() => {
+                  localStorage.clear();
+                  navigate("/login");
+                }}
+                className="bg-red-500 hover:bg-red-600 text-white font-semibold px-6 py-3 rounded-xl shadow"
               >
-                <div className="text-4xl mb-2">{t.label}</div>
-                <p className="text-sm">{t.description}</p>
+                🚪 Выйти
               </button>
-            ))}
-          </div>
+            </div>
+          </>
         )}
 
         {tab === "tests" && (
@@ -205,18 +223,6 @@ export default function Dashboard() {
             </button>
           </div>
         )}
-
-        <div className="text-center pt-10">
-          <button
-            onClick={() => {
-              localStorage.clear();
-              navigate("/login");
-            }}
-            className="bg-red-500 hover:bg-red-600 text-white font-semibold px-6 py-3 rounded-xl"
-          >
-            🚪 Выйти
-          </button>
-        </div>
       </div>
     </div>
   );
