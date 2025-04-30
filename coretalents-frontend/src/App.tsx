@@ -1,16 +1,18 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"; 
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import CoreTalentsTest from "./pages/CoreTalentsTest";
 import CoreTalentsResults from "./pages/CoreTalentsResults";
 import BigFiveTest from "./pages/BigFiveTest";
 import BigFiveResultsPage from "./pages/BigFiveResultsPage";
+import BigFiveResults from "./pages/BigFiveResults"; // ✅ добавлено
 import MBTITest from "./pages/MBTITest";
 import MBTIResults from "./pages/MBTIResults";
 import Dashboard from "./pages/Dashboard";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import PrivateRoute from "./components/PrivateRoute";
-import HeroJourney from "./pages/HeroJourney"; // ✅ добавлено
-import HabitTracker from "./pages/HabitTracker"; // ✅ НОВОЕ
+import HeroJourney from "./pages/HeroJourney";
+import HabitTracker from "./pages/HabitTracker";
+
 const API_URL = import.meta.env.VITE_API_URL;
 
 function App() {
@@ -68,6 +70,14 @@ function App() {
           element={
             <PrivateRoute>
               <BigFiveResultsPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/bigfive-results"
+          element={
+            <PrivateRoute>
+              <BigFiveResults />
             </PrivateRoute>
           }
         />
