@@ -6,7 +6,7 @@ from app.routes.auth import get_current_user
 
 from app.models.test import Test, Question, UserResult
 from app.models.coretalents import CoreQuestion
-import json  # ✅ для сериализации
+import json
 import os
 from pydantic import BaseModel
 
@@ -19,11 +19,9 @@ def get_db():
     finally:
         db.close()
 
-
 @router.get("/")
 def get_tests(db: Session = Depends(get_db)):
     return db.query(Test).all()
-
 
 @router.get("/gallup")
 def get_gallup_test(db: Session = Depends(get_db)):
@@ -31,7 +29,6 @@ def get_gallup_test(db: Session = Depends(get_db)):
     if not test:
         raise HTTPException(status_code=404, detail="Gallup test not found")
     return {"test_id": test.id, "questions": [q.text for q in test.questions]}
-
 
 @router.post("/gallup/submit")
 def submit_gallup_test(answers: dict, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -44,7 +41,6 @@ def submit_gallup_test(answers: dict, user: User = Depends(get_current_user), db
     db.commit()
     
     return {"message": "Gallup test submitted!", "result_id": result.id}
-
 
 @router.get("/coretalents")
 def get_coretalents_questions(db: Session = Depends(get_db)):
@@ -59,8 +55,6 @@ def get_coretalents_questions(db: Session = Depends(get_db)):
         for q in questions
     ]
 
-
-# ✅ Новый роут для сохранения результатов CoreTalents
 @router.post("/coretalents/submit")
 def submit_coretalents_test(
     answers: dict,
@@ -77,23 +71,36 @@ def submit_coretalents_test(
         answers=json.dumps(answers),
         score=0
     )
+
+    # 🧠 Генерация summary из top-5 ответов
+    try:
+        sorted_items = sorted(answers.items(), key=lambda x: x[1], reverse=True)
+        top_5_ids = [int(k) for k, v in sorted_items[:5]]
+
+        data_path = os.path.join("app", "data", "coretalents_results_data_full.json")
+        with open(data_path, "r", encoding="utf-8") as f:
+            talents_data = json.load(f)
+
+        id_to_name = {t["id"]: t["name"] for t in talents_data}
+        top_5_names = [id_to_name.get(tid, f"Талант {tid}") for tid in top_5_ids]
+        result.summary = ", ".join(top_5_names)
+    except Exception as e:
+        print(f"❌ Ошибка генерации summary: {e}")
+        result.summary = None
+
     db.add(result)
     db.commit()
 
     return {"message": "CoreTalents test submitted!", "result_id": result.id}
 
-
-# ✅ Новый роут: возвращает список талантов по id с описанием
 class TalentInput(BaseModel):
     id: int
     score: int
 
 @router.post("/coretalents/results")
 def get_coretalents_results(top_talents: list[TalentInput]):
-    # Путь к файлу
     data_path = os.path.join("app", "data", "coretalents_results_data_full.json")
 
-    # Загружаем файл один раз
     with open(data_path, "r", encoding="utf-8") as f:
         talents_raw = json.load(f)
         talent_dict = {t["id"]: t for t in talents_raw}
