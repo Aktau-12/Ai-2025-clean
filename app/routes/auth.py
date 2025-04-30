@@ -26,10 +26,10 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 1440)
 if not SECRET_KEY:
     raise RuntimeError("❌ SECRET_KEY не найден в .env")
 
-# ─── Инициализация ────────────────────────────────────────────────────────
-router = APIRouter(prefix="/auth", tags=["Auth"])
+# ─── Инициализация роутера без дублирования префикса ───────────────────────
+router = APIRouter(tags=["Auth"])
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 
 # ─── Pydantic-модели ───────────────────────────────────────────────────────
@@ -103,18 +103,19 @@ def register_user(
     req: RegisterRequest,
     db: Session = Depends(get_db),
 ):
-    # Проверяем, что пользователя нет
     if db.query(User).filter(User.email == req.email).first():
         raise HTTPException(status_code=400, detail="⛔️ Пользователь уже существует")
 
-    # Хешируем и сохраняем
-    hashed = get_password_hash(req.password)
-    user = User(email=req.email, password_hash=hashed, name=req.name or req.email, xp=0)
+    user = User(
+        email=req.email,
+        password_hash=get_password_hash(req.password),
+        name=req.name or req.email,
+        xp=0,
+    )
     db.add(user)
     db.commit()
     db.refresh(user)
 
-    # Отдаём токен
     token = create_access_token(user.email)
     return {"access_token": token, "token_type": "bearer"}
 
