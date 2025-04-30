@@ -9,6 +9,7 @@ from passlib.hash import bcrypt
 
 router = APIRouter()
 
+# ✅ Подключение к базе данных
 def get_db():
     db = SessionLocal()
     try:
@@ -16,31 +17,36 @@ def get_db():
     finally:
         db.close()
 
+# ✅ Хеширование пароля
 def hash_password(password: str) -> str:
     return bcrypt.hash(password)
 
+# ✅ Модель данных для регистрации
 class UserCreate(BaseModel):
     email: str
     password: str
     name: str
 
+# ✅ Регистрация нового пользователя
 @router.post("/register", response_model=dict)
 def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
+    # Проверка на существующего пользователя
     if db.query(User).filter(User.email == user_data.email).first():
         raise HTTPException(status_code=400, detail="⛔ Этот email уже зарегистрирован")
 
+    # Создание пользователя
     hashed_password = hash_password(user_data.password)
     user = User(
         email=user_data.email,
         name=user_data.name,
         password_hash=hashed_password,
-        archetype=None  # ✅ Явная инициализация архетипа
+        archetype=None  # ✅ Архетип по умолчанию
     )
     db.add(user)
     db.commit()
-    db.refresh(user)
+    db.refresh(user)  # ✅ Ключевая строка — получаем user.id после commit
 
-    # ✅ Создаём начальный прогресс героя
+    # ✅ Добавление начального прогресса
     progress = UserHeroProgress(user_id=user.id, xp=0)
     db.add(progress)
     db.commit()
@@ -50,6 +56,7 @@ def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
         "user_id": user.id
     }
 
+# ✅ Получение текущего пользователя
 @router.get("/me")
 def get_me(user: User = Depends(get_current_user)):
     return {
