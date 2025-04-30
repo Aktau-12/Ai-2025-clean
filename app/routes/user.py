@@ -1,17 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from passlib.context import CryptContext
-from app.database.db import SessionLocal
 from app.models.user import User
 from app.models.hero import UserHeroProgress
+from app.database.db import SessionLocal
 from app.routes.auth import get_current_user
-from app.schemas.user import UserCreate, UserResponse  # 👈 импорт схем
+from pydantic import BaseModel
+from passlib.hash import bcrypt
 
 router = APIRouter()
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-
-# 🔌 Получение сессии БД
 def get_db():
     db = SessionLocal()
     try:
@@ -19,13 +16,14 @@ def get_db():
     finally:
         db.close()
 
+def hash_password(password: str) -> str:
+    return bcrypt.hash(password)
 
-# 🔒 Хеширование пароля
-def hash_password(password: str):
-    return pwd_context.hash(password)
+class UserCreate(BaseModel):
+    email: str
+    password: str
+    name: str
 
-
-# ✅ Регистрация нового пользователя с прогрессом героя
 @router.post("/register", response_model=dict)
 def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
     if db.query(User).filter(User.email == user_data.email).first():
@@ -35,13 +33,14 @@ def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
     user = User(
         email=user_data.email,
         name=user_data.name,
-        password_hash=hashed_password
+        password_hash=hashed_password,
+        archetype=None  # ✅ Явная инициализация архетипа
     )
     db.add(user)
     db.commit()
     db.refresh(user)
 
-    # ✅ Создаём прогресс героя
+    # ✅ Создаём начальный прогресс героя
     progress = UserHeroProgress(user_id=user.id, xp=0)
     db.add(progress)
     db.commit()
@@ -51,15 +50,13 @@ def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
         "user_id": user.id
     }
 
-
-# 👤 Получение текущего пользователя
-@router.get("/me", response_model=UserResponse)
-def get_user_me(user: User = Depends(get_current_user)):
-    xp = user.hero_progress.xp if user.hero_progress else 0
+@router.get("/me")
+def get_me(user: User = Depends(get_current_user)):
     return {
+        "id": user.id,
         "email": user.email,
         "name": user.name,
-        "id": user.id,
-        "xp": xp,
-        "mbti_type": user.mbti_type  # ✅ MBTI тип включён
+        "mbti_type": user.mbti_type,
+        "archetype": user.archetype,
+        "created_at": user.created_at,
     }
