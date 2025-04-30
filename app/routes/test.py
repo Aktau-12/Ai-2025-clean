@@ -14,6 +14,7 @@ from pathlib import Path
 
 router = APIRouter()
 
+
 def get_db():
     db = SessionLocal()
     try:
@@ -21,14 +22,16 @@ def get_db():
     finally:
         db.close()
 
+
 def add_xp(user_id: int, db: Session, amount: int = 20):
     progress = db.query(UserHeroProgress).filter(UserHeroProgress.user_id == user_id).first()
     if progress:
         progress.xp = (progress.xp or 0) + amount
     else:
-        progress = UserHeroProgress(user_id=user_id, xp=amount, step_id="init")
+        progress = UserHeroProgress(user_id=user_id, xp=amount)
         db.add(progress)
     db.commit()
+
 
 def safe_parse_json(data):
     if isinstance(data, str):
@@ -37,6 +40,7 @@ def safe_parse_json(data):
         except json.JSONDecodeError:
             return {}
     return data if isinstance(data, dict) else {}
+
 
 # Загрузка маппинга талантов
 mapping = {}
@@ -57,21 +61,21 @@ if coretalents_path.exists():
     except Exception:
         coretalents_data = {}
 
+
 class CoreTalentsSubmission(BaseModel):
     answers: dict[int, int]
+
 
 class BigFiveSubmission(BaseModel):
     answers: list[dict]
     result: dict
 
-@router.get("/")
-def get_tests(db: Session = Depends(get_db)):
-    return []
 
 @router.get("/coretalents")
 def get_coretalents_questions(db: Session = Depends(get_db)):
     questions = db.query(CoreQuestion).order_by(CoreQuestion.position).all()
     return [{"id": q.id, "question_a": q.question_a, "question_b": q.question_b, "position": q.position} for q in questions]
+
 
 @router.get("/{test_id}/questions")
 def get_test_questions(test_id: int, db: Session = Depends(get_db)):
@@ -81,6 +85,7 @@ def get_test_questions(test_id: int, db: Session = Depends(get_db)):
         qs = db.query(Question).filter(Question.test_id == 2).order_by(Question.position).all()
         return [{"id": q.id, "text": q.text, "position": q.position} for q in qs]
     raise HTTPException(status_code=404, detail="Вопросы не найдены")
+
 
 @router.post("/1/submit")
 def submit_coretalents(submission: CoreTalentsSubmission, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -98,8 +103,8 @@ def submit_coretalents(submission: CoreTalentsSubmission, user: User = Depends(g
     res = UserResult(
         user_id=user.id,
         test_id=1,
-        answers=submission.answers,   # ✅ чистый dict
-        score=scores,                 # ✅ чистый dict
+        answers=submission.answers,
+        score=scores,
         timestamp=datetime.utcnow()
     )
     db.add(res)
@@ -107,13 +112,14 @@ def submit_coretalents(submission: CoreTalentsSubmission, user: User = Depends(g
     add_xp(user.id, db, amount=50)
     return {"message": "CoreTalents submitted successfully", "result_id": res.id}
 
+
 @router.post("/{test_id}/submit")
 def submit_test_answers(test_id: int, submission: BigFiveSubmission, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     res = UserResult(
         user_id=user.id,
         test_id=test_id,
-        answers=submission.result,   # ✅ чистый dict
-        score=None,                  # пока score для BigFive и MBTI можно оставить пустым
+        answers=submission.result,
+        score=None,
         timestamp=datetime.utcnow()
     )
     db.add(res)
@@ -125,6 +131,7 @@ def submit_test_answers(test_id: int, submission: BigFiveSubmission, user: User 
         add_xp(user.id, db, amount=20)
 
     return {"message": f"Test {test_id} submitted!", "result_id": res.id}
+
 
 @router.get("/1/results")
 @router.get("/coretalents/results")
@@ -138,6 +145,7 @@ def get_coretalents_results(user: User = Depends(get_current_user), db: Session 
 
     return {"answers": answers, "scores": scores}
 
+
 @router.get("/2/result")
 def get_bigfive_result(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     result = db.query(UserResult).filter(UserResult.user_id == user.id, UserResult.test_id == 2).order_by(UserResult.id.desc()).first()
@@ -148,6 +156,7 @@ def get_bigfive_result(user: User = Depends(get_current_user), db: Session = Dep
         return parsed
     raise HTTPException(status_code=400, detail="Неверный формат результата")
 
+
 @router.get("/my-results")
 def get_my_results(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     results = []
@@ -155,15 +164,15 @@ def get_my_results(user: User = Depends(get_current_user), db: Session = Depends
     # CoreTalents
     core = db.query(UserResult).filter(UserResult.user_id == user.id, UserResult.test_id == 1).order_by(UserResult.timestamp.desc()).first()
     if core:
-        answers = safe_parse_json(core.answers)
-        top_ids = sorted(answers.items(), key=lambda x: x[1], reverse=True)[:5]
+        scores = safe_parse_json(core.score)
+        top_ids = sorted(scores.items(), key=lambda x: x[1], reverse=True)[:5]
         names = [coretalents_data.get(str(tid), {}).get("name", f"Талант {tid}") for tid, _ in top_ids]
         summary_text = ", ".join(names)
         results.append({
             "test_name": "CoreTalents 34",
             "result_id": core.id,
-            "answers_count": len(answers),
-            "score": core.score,
+            "answers_count": len(scores),
+            "score": scores,
             "completed_at": core.timestamp.isoformat() if core.timestamp else None,
             "summary": f"Топ 5 талантов: {summary_text}"
         })
@@ -177,7 +186,7 @@ def get_my_results(user: User = Depends(get_current_user), db: Session = Depends
             "test_name": "Big Five",
             "result_id": big.id,
             "answers_count": len(parsed_big),
-            "score": big.score,
+            "score": parsed_big,
             "completed_at": big.timestamp.isoformat() if big.timestamp else None,
             "summary": scores_str
         })
