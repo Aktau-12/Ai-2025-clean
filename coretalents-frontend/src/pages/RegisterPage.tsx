@@ -33,12 +33,13 @@ export default function RegisterPage() {
         body: JSON.stringify({ name, email, password }),
       });
 
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.detail || "Ошибка регистрации");
-      }
-
+      // Читаем JSON один раз
       const data = await response.json();
+
+      // Если сервер вернул ошибку — выбрасываем её
+      if (!response.ok) {
+        throw new Error(data.detail || "Ошибка регистрации");
+      }
 
       // ✅ Сохраняем токен
       localStorage.setItem("token", data.access_token);

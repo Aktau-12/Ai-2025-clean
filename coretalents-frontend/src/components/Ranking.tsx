@@ -26,8 +26,11 @@ export default function Ranking() {
     }
 
     const fetchRanking = async () => {
+      setError(null);
+      setLoading(true);
       try {
-        const res = await fetch(`${API_URL}/rating/`, {
+        const res = await fetch(`${API_URL}/rating`, {  // убрал конечный слэш
+          method: "GET",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
@@ -38,15 +41,14 @@ export default function Ranking() {
         if (res.status === 401) {
           localStorage.removeItem("token");
           navigate("/login");
-          throw new Error("401 Unauthorized");
+          return;
         }
 
         if (!res.ok) {
           throw new Error(`Ошибка загрузки: ${res.status}`);
         }
 
-        const data = await res.json();
-        console.log("🎯 Полученные данные рейтинга:", data);
+        const data: RankedUser[] = await res.json();
         setRanking(data);
       } catch (err: any) {
         console.error("❌ Ошибка загрузки рейтинга:", err);
@@ -65,8 +67,11 @@ export default function Ranking() {
         🏆 Рейтинг пользователей по XP
       </h1>
 
-      {loading && <p className="text-center text-gray-600">⏳ Загрузка рейтинга...</p>}
-      {error && !loading && (
+      {loading && (
+        <p className="text-center text-gray-600">⏳ Загрузка рейтинга...</p>
+      )}
+
+      {!loading && error && (
         <p className="text-center text-red-500">{error}</p>
       )}
 
@@ -76,19 +81,17 @@ export default function Ranking() {
 
       {!loading && !error && ranking.length > 0 && (
         <ul className="space-y-4">
-          {ranking.map((user, index) => (
+          {ranking.map((user, idx) => (
             <li
               key={user.user_id}
               className={`flex justify-between items-center bg-white p-4 rounded-xl shadow ${
-                index === 0 ? "bg-yellow-100 border-l-4 border-yellow-400" : ""
+                idx === 0 ? "bg-yellow-100 border-l-4 border-yellow-400" : ""
               }`}
             >
-              <div className="text-lg font-semibold">
-                #{index + 1} — {user.username || "Аноним"}
-              </div>
-              <div className="text-sm text-gray-700">
-                🎯 {user.xp} XP
-              </div>
+              <span className="text-lg font-semibold">
+                #{idx + 1} — {user.username || "Аноним"}
+              </span>
+              <span className="text-sm text-gray-700">🎯 {user.xp} XP</span>
             </li>
           ))}
         </ul>

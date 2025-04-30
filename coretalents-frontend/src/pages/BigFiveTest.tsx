@@ -6,41 +6,48 @@ import BigFiveResults from "./BigFiveResults";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
+type AnswersMap = Record<number, string>;
+
+enum SubmitState {
+  Idle,
+  Submitting,
+  Done,
+}
+
 export default function BigFiveTest() {
   const [questions, setQuestions] = useState<any[]>([]);
-  const [answers, setAnswers] = useState<Record<number, string>>({});
-  const [submitted, setSubmitted] = useState(false);
+  const [answers, setAnswers] = useState<AnswersMap>({});
+  const [submitState, setSubmitState] = useState<SubmitState>(SubmitState.Idle);
   const [result, setResult] = useState<Record<string, number> | null>(null);
   const [current, setCurrent] = useState(0);
   const [timer, setTimer] = useState(20);
   const navigate = useNavigate();
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
     axios
       .get(`${API_URL}/tests/2/questions`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => setQuestions(res.data))
       .catch((err) => console.error("❌ Ошибка загрузки вопросов:", err));
-  }, [navigate]);
+  }, []);
 
   useEffect(() => {
-    if (!questions.length) return;
+    if (!questions.length || submitState !== SubmitState.Idle) return;
     setTimer(20);
     const countdown = setInterval(() => {
       setTimer((prev) => {
         if (prev <= 1) {
           clearInterval(countdown);
-          handleNext(); // автоматически переключаемся
+          onNext();
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
     return () => clearInterval(countdown);
-  }, [current, questions]);
+  }, [current, questions, submitState]);
 
   const getTraitByQuestionId = (id: number): string => {
     const index = (id - 1) % 50;
@@ -51,60 +58,57 @@ export default function BigFiveTest() {
     return "N";
   };
 
-  const calculateBigFive = (answers: Record<number, string>) => {
+  const calculateBigFive = (ans: AnswersMap) => {
     const traits: Record<string, number> = { O: 0, C: 0, E: 0, A: 0, N: 0 };
     const count: Record<string, number> = { O: 0, C: 0, E: 0, A: 0, N: 0 };
-    for (const [key, val] of Object.entries(answers)) {
-      const questionId = Number(key);
-      const trait = getTraitByQuestionId(questionId);
-      const value = parseInt(val) || 0;
-      traits[trait] += value;
+    Object.entries(ans).forEach(([k, v]) => {
+      const qId = Number(k);
+      const trait = getTraitByQuestionId(qId);
+      const num = parseInt(v) || 0;
+      traits[trait] += num;
       count[trait] += 1;
-    }
-    const result: Record<string, number> = {};
-    for (const t of Object.keys(traits)) {
-      result[t] = +(traits[t] / (count[t] || 1)).toFixed(2);
-    }
-    return result;
+    });
+    return Object.fromEntries(
+      Object.entries(traits).map(([t, sum]) => [t, +(sum / (count[t] || 1)).toFixed(2)])
+    );
   };
 
-  const handleChange = (questionId: number, value: string) => {
-    setAnswers((prev) => ({ ...prev, [questionId]: value }));
+  const onChange = (id: number, val: string) => {
+    setAnswers((prev) => ({ ...prev, [id]: val }));
   };
 
-  const handleNext = () => {
+  const onNext = () => {
     if (current < questions.length - 1) {
-      setCurrent((prev) => prev + 1);
+      setCurrent((i) => i + 1);
     } else {
-      handleSubmit(); // ⬅️ автоматическое завершение
+      onSubmit();
     }
   };
 
-  const handleSubmit = async () => {
+  const onSubmit = async () => {
+    if (submitState !== SubmitState.Idle) return;
+    setSubmitState(SubmitState.Submitting);
     const payload = questions.map((q) => ({
       question_id: q.id,
       answer: parseInt(answers[q.id]) || 2,
     }));
     const computed = calculateBigFive(answers);
-
     try {
+      const token = localStorage.getItem("token");
       await axios.post(
         `${API_URL}/tests/2/submit`,
         { answers: payload, result: computed },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       setResult(computed);
-      setSubmitted(true);
+      setSubmitState(SubmitState.Done);
     } catch (err) {
       console.error("❌ Ошибка отправки результатов:", err);
+      setSubmitState(SubmitState.Idle);
     }
   };
 
-  if (submitted && result) {
+  if (submitState === SubmitState.Done && result) {
     return (
       <div className="p-6 text-center">
         <h2 className="text-xl font-semibold mb-4">Ваши результаты Big Five</h2>
@@ -112,7 +116,7 @@ export default function BigFiveTest() {
         <div className="mt-6 space-x-4">
           <button
             onClick={() => navigate("/dashboard")}
-            className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition"
+            className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"
           >
             🔙 Назад в меню
           </button>
@@ -121,7 +125,7 @@ export default function BigFiveTest() {
               localStorage.removeItem("token");
               navigate("/login");
             }}
-            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
+            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
           >
             🚪 Выйти
           </button>
@@ -134,23 +138,16 @@ export default function BigFiveTest() {
   if (!q) return <div className="p-6 text-center">Загрузка...</div>;
 
   return (
-    <div className="max-w-2xl mx-auto mt-10 p-6">
-      <h1 className="text-2xl font-bold mb-4">🧠 Big Five Test</h1>
+    <div className="max-w-2xl mx-auto mt-10 p-6 space-y-6">
+      <h1 className="text-2xl font-bold">🧠 Big Five Test</h1>
 
-      <div className="flex justify-between items-center mb-4 text-sm text-gray-600">
-        <div>
-          ⏳ Осталось: <span className="font-bold">{timer}</span> сек
-        </div>
-        <div>
-          Вопрос {current + 1} из {questions.length}
-        </div>
+      <div className="flex justify-between text-sm text-gray-600">
+        <span>⏳ Осталось: <b>{timer}</b> сек</span>
+        <span>Вопрос {current + 1}/{questions.length}</span>
       </div>
 
-      <div className="border p-4 rounded">
-        <p className="font-medium mb-4">
-          {current + 1}. {q.text || "(вопрос отсутствует)"}
-        </p>
-
+      <div className="border p-4 rounded-lg">
+        <p className="font-medium mb-4">{current + 1}. {q.text || "(вопрос отсутствует)"}</p>
         <div className="flex justify-around mb-4">
           {[1, 2, 3].map((val) => (
             <label key={val} className="flex flex-col items-center">
@@ -159,39 +156,36 @@ export default function BigFiveTest() {
                 name={`q-${q.id}`}
                 value={val}
                 checked={answers[q.id] === val.toString()}
-                onChange={(e) => handleChange(q.id, e.target.value)}
+                onChange={(e) => onChange(q.id, e.target.value)}
+                disabled={submitState === SubmitState.Submitting}
               />
               <span className="text-sm mt-1">
-                {val === 1
-                  ? "Это не про меня"
-                  : val === 2
-                  ? "Не знаю"
-                  : "Это точно про меня"}
+                {val === 1 ? "Это не про меня" : val === 2 ? "Не знаю" : "Это точно про меня"}
               </span>
             </label>
           ))}
         </div>
-
-        <div className="w-full h-2 bg-gray-200 rounded-full mt-2">
+        <div className="w-full h-2 bg-gray-200 rounded">
           <div
-            className="h-full bg-orange-500 rounded-full transition-all duration-1000"
-            style={{ width: `${(timer / 20) * 100}%` }}
+            className="h-full bg-orange-500 rounded transition-all"
+            style={{ width: `${(timer/20)*100}%` }}
           />
         </div>
       </div>
 
-      <div className="flex justify-between mt-6">
+      <div className="flex justify-between">
         <button
-          onClick={handleSubmit}
-          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+          onClick={onSubmit}
+          disabled={submitState !== SubmitState.Idle}
+          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50"
         >
           ✅ Завершить тест
         </button>
-
-        {answers[q.id] !== undefined && current < questions.length && (
+        {current < questions.length - 1 && (
           <button
-            onClick={handleNext}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            onClick={onNext}
+            disabled={submitState !== SubmitState.Idle || answers[q.id] === undefined}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
           >
             Следующий ➡️
           </button>
@@ -200,4 +194,3 @@ export default function BigFiveTest() {
     </div>
   );
 }
-

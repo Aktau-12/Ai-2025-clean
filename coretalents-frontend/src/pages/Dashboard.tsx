@@ -60,22 +60,22 @@ export default function Dashboard() {
 
         {tab === "menu" && (
           <>
-            <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 mt-8">
+            <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 mt-8">
               {[
                 { key: "tests", icon: "💡", title: "Мои тесты", subtitle: "Пройти психологические тесты" },
                 { key: "results", icon: "📊", title: "Результаты", subtitle: "Ваши результаты тестов" },
                 { key: "hero", icon: "🗺️", title: "Путь героя", subtitle: "Ваш путь развития" },
-                { key: "mentor", icon: "🤖", title: "AI-наставник", subtitle: "AI-наставник с советами" },
-                { key: "professions", icon: "🎯", title: "Профессии", subtitle: "Дополнительный модуль" },
-                { key: "lifewheel", icon: "📈", title: "Колесо жизни", subtitle: "Оценка сфер жизни" },
-                { key: "ranking", icon: "🏆", title: "Рейтинг", subtitle: "Дополнительный модуль" },
+                { key: "mentor", icon: "🤖", title: "AI-наставник", subtitle: "Советы от AI" },
+                { key: "professions", icon: "🎯", title: "Профессии", subtitle: "Рекомендации профессий" },
+                { key: "lifewheel", icon: "📈", title: "Колесо жизни", subtitle: "Баланс жизненных сфер" },
+                { key: "ranking", icon: "🏆", title: "Рейтинг", subtitle: "Топ пользователей по XP" },
                 { key: "habits", icon: "✅", title: "Привычки", subtitle: "Трекер привычек" },
                 { key: "thinking", icon: "🧠", title: "Алгоритмы мышления", subtitle: "Инструменты мышления" },
               ].map((item) => (
                 <button
                   key={item.key}
                   onClick={() => setTab(item.key)}
-                  className="bg-white p-5 rounded-2xl shadow hover:shadow-md transition flex flex-col items-start text-left hover:bg-blue-50"
+                  className="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition flex flex-col items-start text-left hover:bg-blue-50"
                 >
                   <div className="text-4xl">{item.icon}</div>
                   <div className="text-lg font-semibold mt-2">{item.title}</div>
@@ -83,14 +83,13 @@ export default function Dashboard() {
                 </button>
               ))}
             </div>
-
             <div className="flex justify-center mt-12">
               <button
                 onClick={() => {
                   localStorage.clear();
                   navigate("/login");
                 }}
-                className="bg-red-500 hover:bg-red-600 text-white font-semibold px-6 py-3 rounded-xl shadow"
+                className="bg-red-500 hover:bg-red-600 text-white font-semibold px-6 py-3 rounded-xl shadow transition"
               >
                 🚪 Выйти
               </button>
@@ -98,6 +97,7 @@ export default function Dashboard() {
           </>
         )}
 
+        {/* Мои тесты */}
         {tab === "tests" && (
           <div className="flex flex-col items-center space-y-4 mt-10">
             <button onClick={() => navigate("/coretalents")} className="btn-primary">
@@ -115,6 +115,7 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* История результатов */}
         {tab === "results" && (
           <div className="space-y-6 mt-8">
             {mbtiType && (
@@ -136,21 +137,28 @@ export default function Dashboard() {
                   <p className="text-sm font-medium">
                     🧪 {res.test_name} — {new Date(res.completed_at).toLocaleString()}
                   </p>
-                  {res.summary && (
-                    <p className="text-sm text-gray-700 mt-1">{res.summary}</p>
-                  )}
+                  {res.summary && <p className="text-sm text-gray-700 mt-1">{res.summary}</p>}
                   {res.test_name === "CoreTalents 34" && (
-                    <button onClick={() => navigate("/coretalents-results")} className="btn-primary mt-2">
-                      🔎 Посмотреть 34 таланта
+                    <button
+                      onClick={() => navigate("/coretalents/results")}
+                      className="btn-primary mt-2"
+                    >
+                      🔎 Посмотреть 34 талента
                     </button>
                   )}
                   {res.test_name === "Big Five" && (
-                    <button onClick={() => navigate("/bigfive-results")} className="btn-primary mt-2">
+                    <button
+                      onClick={() => navigate("/bigfive/results")}
+                      className="btn-primary mt-2"
+                    >
                       🔎 Посмотреть Big Five
                     </button>
                   )}
                   {res.test_name === "MBTI" && (
-                    <button onClick={() => navigate("/mbti-results")} className="btn-primary mt-2">
+                    <button
+                      onClick={() => navigate("/mbti/results")}
+                      className="btn-primary mt-2"
+                    >
                       🔎 Посмотреть MBTI
                     </button>
                   )}
@@ -165,58 +173,54 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* Остальные вкладки */}
         {tab === "hero" && (
-          <div className="mt-8">
+          <section className="mt-8">
             <HeroPath />
             <button onClick={() => setTab("menu")} className="btn-outline mt-6">
               🔙 Назад в меню
             </button>
-          </div>
+          </section>
         )}
-
         {tab === "professions" && (
-          <div className="mt-8">
+          <section className="mt-8">
             <HeroProfessions />
             <button onClick={() => setTab("menu")} className="btn-outline mt-6">
               🔙 Назад в меню
             </button>
-          </div>
+          </section>
         )}
-
         {tab === "ranking" && (
-          <div className="mt-8">
+          <section className="mt-8">
             <Ranking />
             <button onClick={() => setTab("menu")} className="btn-outline mt-6">
               🔙 Назад в меню
             </button>
-          </div>
+          </section>
         )}
-
         {tab === "habits" && (
-          <div className="mt-8">
+          <section className="mt-8">
             <HabitTracker />
             <button onClick={() => setTab("menu")} className="btn-outline mt-6">
               🔙 Назад в меню
             </button>
-          </div>
+          </section>
         )}
-
         {tab === "thinking" && (
-          <div className="mt-8">
+          <section className="mt-8">
             <ThinkingAlgorithm />
             <button onClick={() => setTab("menu")} className="btn-outline mt-6">
               🔙 Назад в меню
             </button>
-          </div>
+          </section>
         )}
-
         {tab === "lifewheel" && (
-          <div className="mt-8">
+          <section className="mt-8">
             <LifeWheel />
             <button onClick={() => setTab("menu")} className="btn-outline mt-6">
               🔙 Назад в меню
             </button>
-          </div>
+          </section>
         )}
       </div>
     </div>
