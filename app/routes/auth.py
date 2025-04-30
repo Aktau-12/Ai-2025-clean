@@ -25,10 +25,11 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "1440
 if not SECRET_KEY:
     raise RuntimeError("❌ SECRET_KEY не найден в .env")
 
-# ─── Инициализация роутера с префиксом /auth ───────────────────────────────
-router = APIRouter(prefix="/auth", tags=["Auth"])
+# ─── Инициализация роутера БЕЗ префикса (префикс задаётся в main.py) ───────
+router = APIRouter(tags=["Auth"])
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
+
 
 # ─── Pydantic-схемы ─────────────────────────────────────────────────────────
 class RegisterRequest(BaseModel):
@@ -36,13 +37,16 @@ class RegisterRequest(BaseModel):
     password: str
     name: Optional[str] = None
 
+
 class LoginRequest(BaseModel):
     email: str
     password: str
 
+
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str
+
 
 # ─── Зависимость: сессия БД ────────────────────────────────────────────────
 def get_db():
@@ -52,12 +56,15 @@ def get_db():
     finally:
         db.close()
 
+
 # ─── Пароли ────────────────────────────────────────────────────────────────
 def verify_password(plain: str, hashed: str) -> bool:
     return pwd_context.verify(plain, hashed)
 
+
 def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
+
 
 # ─── JWT ───────────────────────────────────────────────────────────────────
 def create_access_token(subject: str, expires_delta: Optional[timedelta] = None) -> str:
@@ -65,6 +72,7 @@ def create_access_token(subject: str, expires_delta: Optional[timedelta] = None)
     exp = now + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     payload = {"sub": subject, "iat": now, "exp": exp}
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+
 
 # ─── Получение текущего пользователя ────────────────────────────────────────
 def get_current_user(
@@ -88,6 +96,7 @@ def get_current_user(
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="⛔️ Пользователь не найден")
     return user
+
 
 # ─── Регистрация ─────────────────────────────────────────────────────────
 @router.post(
@@ -116,6 +125,7 @@ def register_user(
     token = create_access_token(new_user.email)
     return {"access_token": token, "token_type": "bearer"}
 
+
 # ─── Логин ───────────────────────────────────────────────────────────────
 @router.post(
     "/login",
@@ -133,7 +143,8 @@ def login_user(
     token = create_access_token(user.email)
     return {"access_token": token, "token_type": "bearer"}
 
-# ─── Пример защищённого маршрута ──────────────────────────────────────────
+
+# ─── Тест защищённого маршрута ────────────────────────────────────────────
 @router.get("/protected", status_code=status.HTTP_200_OK)
 def protected_route(user: User = Depends(get_current_user)):
     return {"message": f"Привет, {user.name}! 🔐 Это защищённый маршрут."}
