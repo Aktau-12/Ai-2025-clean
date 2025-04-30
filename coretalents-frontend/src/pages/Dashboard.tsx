@@ -62,24 +62,19 @@ export default function Dashboard() {
           <>
             <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 mt-8">
               {[
-                { key: "tests", icon: "💡", title: "CoreTalents 34", subtitle: "Пройти тесты не вражденные к талантов" },
-                { key: "bigfive", icon: "📊", title: "Big Five", subtitle: "Пройти личностный тест" },
-                { key: "mbti", icon: "🔍", title: "MBTI", subtitle: "Тип личности" },
-                { key: "lifewheel", icon: "📈", title: "Колесо жизни", subtitle: "Оценка сфер жизни" },
+                { key: "tests", icon: "💡", title: "Мои тесты", subtitle: "Пройти психологические тесты" },
+                { key: "results", icon: "📊", title: "Результаты", subtitle: "Ваши результаты тестов" },
                 { key: "hero", icon: "🗺️", title: "Путь героя", subtitle: "Ваш путь развития" },
-                { key: "mentor", icon: "🤖", title: "AI-наставник", subtitle: "Советы от ИИ" },
+                { key: "mentor", icon: "🤖", title: "AI-наставник", subtitle: "AI-наставник с советами" },
+                { key: "professions", icon: "🎯", title: "Профессии", subtitle: "Дополнительный модуль" },
+                { key: "lifewheel", icon: "📈", title: "Колесо жизни", subtitle: "Оценка сфер жизни" },
+                { key: "ranking", icon: "🏆", title: "Рейтинг", subtitle: "Дополнительный модуль" },
                 { key: "habits", icon: "✅", title: "Привычки", subtitle: "Трекер привычек" },
-                { key: "professions", icon: "🎯", title: "Профессии", subtitle: "Навигатор профессий" },
-                { key: "ranking", icon: "🏆", title: "Рейтинг", subtitle: "Ваш прогресс среди других" },
                 { key: "thinking", icon: "🧠", title: "Алгоритмы мышления", subtitle: "Инструменты мышления" },
               ].map((item) => (
                 <button
                   key={item.key}
-                  onClick={() => {
-                    if (item.key === "bigfive") navigate("/bigfive");
-                    else if (item.key === "mbti") navigate("/mbti");
-                    else setTab(item.key);
-                  }}
+                  onClick={() => setTab(item.key)}
                   className="bg-white p-5 rounded-2xl shadow hover:shadow-md transition flex flex-col items-start text-left hover:bg-blue-50"
                 >
                   <div className="text-4xl">{item.icon}</div>
