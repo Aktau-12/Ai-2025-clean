@@ -9,6 +9,7 @@ from app.models.coretalents import CoreQuestion
 import json
 import os
 from pydantic import BaseModel
+from collections import Counter
 
 router = APIRouter()
 
@@ -65,28 +66,33 @@ def submit_coretalents_test(
     if not test:
         raise HTTPException(status_code=404, detail="CoreTalents test not found")
 
+    # Считаем баллы по талантам
+    scores = Counter()
+    for k, v in answers.items():
+        scores[int(k)] += v
+
+    top_5_ids = [tid for tid, _ in scores.most_common(5)]
+
+    # Загружаем данные талантов
+    data_path = os.path.join("app", "data", "coretalents_results_data_full.json")
+    try:
+        with open(data_path, "r", encoding="utf-8") as f:
+            talents_data = json.load(f)
+            id_to_name = {t["id"]: t["name"] for t in talents_data}
+    except Exception as e:
+        print(f"❌ Ошибка загрузки данных: {e}")
+        id_to_name = {}
+
+    top_5_names = [id_to_name.get(tid, f"Талант {tid}") for tid in top_5_ids]
+    summary_text = "Топ 5 талантов: " + ", ".join(top_5_names)
+
     result = UserResult(
         user_id=user.id,
         test_id=test.id,
         answers=json.dumps(answers),
-        score=0
+        score=json.dumps(dict(scores)),
+        summary=summary_text
     )
-
-    # 🧠 Генерация summary из top-5 ответов
-    try:
-        sorted_items = sorted(answers.items(), key=lambda x: x[1], reverse=True)
-        top_5_ids = [int(k) for k, v in sorted_items[:5]]
-
-        data_path = os.path.join("app", "data", "coretalents_results_data_full.json")
-        with open(data_path, "r", encoding="utf-8") as f:
-            talents_data = json.load(f)
-
-        id_to_name = {t["id"]: t["name"] for t in talents_data}
-        top_5_names = [id_to_name.get(tid, f"Талант {tid}") for tid in top_5_ids]
-        result.summary = ", ".join(top_5_names)
-    except Exception as e:
-        print(f"❌ Ошибка генерации summary: {e}")
-        result.summary = None
 
     db.add(result)
     db.commit()
