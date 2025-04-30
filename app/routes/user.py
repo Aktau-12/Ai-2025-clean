@@ -30,23 +30,26 @@ class UserCreate(BaseModel):
 # ✅ Регистрация нового пользователя
 @router.post("/register", response_model=dict)
 def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
-    # Проверка на существующего пользователя
     if db.query(User).filter(User.email == user_data.email).first():
         raise HTTPException(status_code=400, detail="⛔ Этот email уже зарегистрирован")
 
-    # Создание пользователя
     hashed_password = hash_password(user_data.password)
+
+    # 1. Создаём и сохраняем пользователя
     user = User(
         email=user_data.email,
         name=user_data.name,
         password_hash=hashed_password,
-        archetype=None  # ✅ Архетип по умолчанию
+        archetype=None
     )
     db.add(user)
     db.commit()
-    db.refresh(user)  # ✅ Ключевая строка — получаем user.id после commit
+    db.refresh(user)  # ✅ Обязательно: получить ID до использования
 
-    # ✅ Добавление начального прогресса
+    # 📤 Лог в консоль:
+    print(f"✅ USER REGISTERED: id={user.id}, email={user.email}")
+
+    # 2. Создаём прогресс героя
     progress = UserHeroProgress(user_id=user.id, xp=0)
     db.add(progress)
     db.commit()
