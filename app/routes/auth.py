@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 from app.database.db import SessionLocal
 from app.models.user import User
 
-# ─── Загружаем переменные из .env ─────────────────────────────────────────
+# ─── Загружаем .env ────────────────────────────────────────────────────────
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -25,7 +25,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "1440
 if not SECRET_KEY:
     raise RuntimeError("❌ SECRET_KEY не найден в .env")
 
-# ─── Настройка роутера и безопасности ──────────────────────────────────────
+# ─── Инициализация роутера с префиксом /auth ───────────────────────────────
 router = APIRouter(prefix="/auth", tags=["Auth"])
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
@@ -66,7 +66,7 @@ def create_access_token(subject: str, expires_delta: Optional[timedelta] = None)
     payload = {"sub": subject, "iat": now, "exp": exp}
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
-# ─── Текущий пользователь ─────────────────────────────────────────────────
+# ─── Получение текущего пользователя ────────────────────────────────────────
 def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
