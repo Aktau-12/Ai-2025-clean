@@ -5,45 +5,49 @@ from typing import Optional
 
 from dotenv import load_dotenv
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
-from jose import jwt, JWTError
-from passlib.context import CryptContext
 from pydantic import BaseModel
+from jose import jwt, JWTError
 from sqlalchemy.orm import Session
+from passlib.context import CryptContext
+from fastapi.security import OAuth2PasswordBearer
 
 from app.database.db import SessionLocal
 from app.models.user import User
 
-# ─── Загрузка .env ────────────────────────────────────────────────────────────
+# ─── Загрузка .env ─────────────────────────────────────────────
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 1440))
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "1440"))
 
 if not SECRET_KEY:
     raise RuntimeError("❌ SECRET_KEY не найден в .env")
 
-# ─── Инициализация ────────────────────────────────────────────────────────────
+# ─── Инициализация ─────────────────────────────────────────────
 router = APIRouter(tags=["Auth"])
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
-# ─── Модели запроса/ответа ────────────────────────────────────────────────────
+
+# ─── Pydantic-схемы ────────────────────────────────────────────
 class RegisterRequest(BaseModel):
     email: str
     password: str
     name: Optional[str] = None
 
+
 class LoginRequest(BaseModel):
     email: str
     password: str
+
 
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str
 
-# ─── БД ───────────────────────────────────────────────────────────────────────
+
+# ─── DB session ────────────────────────────────────────────────
 def get_db():
     db = SessionLocal()
     try:
@@ -51,21 +55,25 @@ def get_db():
     finally:
         db.close()
 
-# ─── Пароли ───────────────────────────────────────────────────────────────────
-def get_password_hash(password: str) -> str:
-    return pwd_context.hash(password)
 
+# ─── Пароли ────────────────────────────────────────────────────
 def verify_password(plain: str, hashed: str) -> bool:
     return pwd_context.verify(plain, hashed)
 
-# ─── JWT ──────────────────────────────────────────────────────────────────────
+
+def get_password_hash(password: str) -> str:
+    return pwd_context.hash(password)
+
+
+# ─── JWT ───────────────────────────────────────────────────────
 def create_access_token(subject: str, expires_delta: Optional[timedelta] = None) -> str:
     now = datetime.utcnow()
     exp = now + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
-    to_encode = {"sub": subject, "iat": now, "exp": exp}
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    payload = {"sub": subject, "iat": now, "exp": exp}
+    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
-# ─── Получение текущего пользователя ─────────────────────────────────────────
+
+# ─── Получение текущего пользователя ──────────────────────────
 def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
@@ -88,27 +96,33 @@ def get_current_user(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="⛔️ Пользователь не найден")
     return user
 
-# ─── Регистрация ─────────────────────────────────────────────────────────────
+
+# ─── Регистрация ──────────────────────────────────────────────
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
 def register_user(req: RegisterRequest, db: Session = Depends(get_db)):
     if db.query(User).filter(User.email == req.email).first():
         raise HTTPException(status_code=400, detail="⛔️ Пользователь уже существует")
 
+    hashed_pw = get_password_hash(req.password)
     new_user = User(
         email=req.email,
-        password_hash=get_password_hash(req.password),
+        password_hash=hashed_pw,
         name=req.name or req.email,
         xp=0,
+        created_at=datetime.utcnow()
     )
     db.add(new_user)
+    db.flush()  # ⬅️ обязательно до print
+    print(f"📥 Зарегистрирован пользователь: ID={new_user.id}, Email={new_user.email}")
     db.commit()
     db.refresh(new_user)
 
     token = create_access_token(new_user.email)
     return {"access_token": token, "token_type": "bearer"}
 
-# ─── Логин ────────────────────────────────────────────────────────────────────
-@router.post("/login", response_model=TokenResponse)
+
+# ─── Логин ────────────────────────────────────────────────────
+@router.post("/login", response_model=TokenResponse, status_code=status.HTTP_200_OK)
 def login_user(req: LoginRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == req.email).first()
     if not user or not verify_password(req.password, user.password_hash):
@@ -117,7 +131,8 @@ def login_user(req: LoginRequest, db: Session = Depends(get_db)):
     token = create_access_token(user.email)
     return {"access_token": token, "token_type": "bearer"}
 
-# ─── Защищённый маршрут ──────────────────────────────────────────────────────
+
+# ─── Защищённый маршрут ───────────────────────────────────────
 @router.get("/protected", status_code=status.HTTP_200_OK)
 def protected_route(user: User = Depends(get_current_user)):
     return {"message": f"Привет, {user.name}! 🔐 Это защищённый маршрут."}
