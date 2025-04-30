@@ -3,9 +3,9 @@ import CoreTalentsTest from "./pages/CoreTalentsTest";
 import CoreTalentsResults from "./pages/CoreTalentsResults";
 import BigFiveTest from "./pages/BigFiveTest";
 import BigFiveResultsPage from "./pages/BigFiveResultsPage";
-import BigFiveResults from "./pages/BigFiveResults"; // ✅ добавлено
+import BigFiveResults from "./pages/BigFiveResults"; // ✅
 import MBTITest from "./pages/MBTITest";
-import MBTIResults from "./pages/MBTIResults";
+import MBTIResults from "./pages/MBTIResults"; // ✅
 import Dashboard from "./pages/Dashboard";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -92,6 +92,14 @@ function App() {
         />
         <Route
           path="/mbti/results"
+          element={
+            <PrivateRoute>
+              <MBTIResults />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/mbti-results"
           element={
             <PrivateRoute>
               <MBTIResults />
