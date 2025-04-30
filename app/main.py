@@ -1,3 +1,5 @@
+# app/main.py
+
 import os
 import subprocess
 from pathlib import Path
@@ -55,7 +57,7 @@ app.add_middleware(
 from app.routes import (
     auth,
     user,
-    test,
+    test,  # ✅ ВАЖНО: добавлен импорт test
     coretalents,
     mbti,
     hero,
@@ -67,7 +69,7 @@ from app.routes import (
 
 app.include_router(auth.router, prefix="/auth", tags=["Auth"])
 app.include_router(user.router, prefix="/users", tags=["Users"])
-app.include_router(test.router, prefix="/tests", tags=["Tests"])
+app.include_router(test.router, prefix="/tests", tags=["Tests"])  # ✅ Подключен router
 app.include_router(coretalents.router, prefix="/coretalents", tags=["CoreTalents"])
 app.include_router(mbti.router, prefix="/mbti", tags=["MBTI"])
 app.include_router(hero.router, prefix="/hero", tags=["Hero"])
