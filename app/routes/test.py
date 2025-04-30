@@ -38,6 +38,14 @@ def safe_parse_json(data):
             return {}
     return data if isinstance(data, dict) else {}
 
+# 🧠 Простая логика архетипа
+def determine_archetype(mbti_type: str, top_talents: list[int]) -> str:
+    if mbti_type.startswith("E") and 1 in top_talents:
+        return "Лидер"
+    elif mbti_type.startswith("I") and 5 in top_talents:
+        return "Аналитик"
+    return "Создатель"
+
 # Загрузка маппинга талантов
 mapping = {}
 mapping_path = Path(__file__).resolve().parent.parent / "data" / "coretalents_question_mapping.json"
@@ -204,5 +212,15 @@ def get_my_results(user: User = Depends(get_current_user), db: Session = Depends
             "completed_at": datetime.utcnow().isoformat(),
             "summary": summary
         })
+
+    # ✅ Автоматическое присвоение архетипа
+    if user.mbti_type and core and isinstance(core.score, dict) and len(core.score) >= 5:
+        top5 = sorted(core.score.items(), key=lambda x: x[1], reverse=True)[:5]
+        top_talents = [int(tid) for tid, _ in top5]
+        new_archetype = determine_archetype(user.mbti_type, top_talents)
+
+        if user.archetype != new_archetype:
+            user.archetype = new_archetype
+            db.commit()
 
     return results
