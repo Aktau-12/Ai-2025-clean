@@ -112,10 +112,10 @@ def register_user(req: RegisterRequest, db: Session = Depends(get_db)):
         created_at=datetime.utcnow()
     )
     db.add(new_user)
-    db.flush()  # ⬅️ обязательно до print
-    print(f"📥 Зарегистрирован пользователь: ID={new_user.id}, Email={new_user.email}")
     db.commit()
     db.refresh(new_user)
+
+    print(f"📥 Зарегистрирован пользователь: ID={new_user.id}, Email={new_user.email}")
 
     token = create_access_token(new_user.email)
     return {"access_token": token, "token_type": "bearer"}
