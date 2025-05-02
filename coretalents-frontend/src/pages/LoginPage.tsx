@@ -30,16 +30,12 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      const formData = new URLSearchParams();
-      formData.append("username", email);
-      formData.append("password", password);
-
       const response = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
+          "Content-Type": "application/json",
         },
-        body: formData.toString(),
+        body: JSON.stringify({ email, password }),
       });
 
       if (!response.ok) {
@@ -124,3 +120,4 @@ export default function LoginPage() {
     </div>
   );
 }
+
