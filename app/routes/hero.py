@@ -10,6 +10,7 @@ from pydantic import BaseModel
 from datetime import datetime
 import json
 import os
+import ast
 
 router = APIRouter(tags=["Hero"])
 
@@ -126,7 +127,10 @@ def get_professions_by_full_profile(user: User = Depends(get_current_user), db: 
         try:
             data = res.answers
             if isinstance(data, str):
-                data = json.loads(data)
+                try:
+                    data = json.loads(data)
+                except json.JSONDecodeError:
+                    data = ast.literal_eval(data)
             if res.test_id == 1:  # CoreTalents
                 coretalents_top5 = sorted(data.items(), key=lambda x: x[1], reverse=True)[:5]
                 coretalents_top5 = [str(talent_id) for talent_id, _ in coretalents_top5]
@@ -163,7 +167,8 @@ def get_professions_by_full_profile(user: User = Depends(get_current_user), db: 
         "bigfive": bigfive
     }
 
-    return JSONResponse(content=match_professions(profile, ALL_PROFESSIONS, limit=5))
+    top_professions = match_professions(profile, ALL_PROFESSIONS, limit=5)
+    return JSONResponse(content=top_professions)
 
 def get_points_for_step(step_id: str) -> int:
     for stage in ALL_STEPS:
