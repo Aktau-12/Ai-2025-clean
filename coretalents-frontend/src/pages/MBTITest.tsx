@@ -43,7 +43,6 @@ export default function MBTITest() {
       choice === 2 ? q.trait_b :
       "X";
 
-    // собираем новый массив с ответами
     const newAnswers = [...answers];
     newAnswers[currentIndex] = {
       question_id: q.id,
@@ -96,10 +95,19 @@ export default function MBTITest() {
         </p>
       </div>
 
-      <div className="bg-gray-100 p-4 rounded-xl shadow">
-        <p className="mb-2 font-medium text-center">A: {q.question_a}</p>
-        <p className="mb-4 font-medium text-center">B: {q.question_b}</p>
-        <div className="grid grid-cols-2 gap-2">
+      <div className="bg-gray-100 p-6 rounded-xl shadow space-y-6">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="text-left">
+            <h3 className="font-semibold mb-2">A:</h3>
+            <p>{q.question_a}</p>
+          </div>
+          <div className="text-right">
+            <h3 className="font-semibold mb-2">B:</h3>
+            <p>{q.question_b}</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
           <button
             onClick={() => handleAnswer(1)}
             disabled={submitting}
@@ -108,25 +116,21 @@ export default function MBTITest() {
             🅰 Согласен с A
           </button>
           <button
-            onClick={() => handleAnswer(4)}
-            disabled={submitting}
-            className="bg-yellow-500 text-white py-2 rounded-xl hover:bg-yellow-600 disabled:opacity-50"
-          >
-            🔁 Согласен с обоими
-          </button>
-          <button
-            onClick={() => handleAnswer(0)}
-            disabled={submitting}
-            className="bg-gray-500 text-white py-2 rounded-xl col-span-2 hover:bg-gray-600 disabled:opacity-50"
-          >
-            ❌ Ни один
-          </button>
-          <button
             onClick={() => handleAnswer(2)}
             disabled={submitting}
             className="bg-green-600 text-white py-2 rounded-xl hover:bg-green-700 disabled:opacity-50"
           >
             🅱 Согласен с B
+          </button>
+        </div>
+
+        <div className="flex justify-center">
+          <button
+            onClick={() => handleAnswer(0)}
+            disabled={submitting}
+            className="bg-gray-500 text-white py-2 px-6 rounded-xl hover:bg-gray-600 disabled:opacity-50"
+          >
+            ❌ Ни один
           </button>
         </div>
       </div>
