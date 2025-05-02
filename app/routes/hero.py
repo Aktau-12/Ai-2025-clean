@@ -11,27 +11,22 @@ from datetime import datetime
 import json
 import os
 
-# 📌 ОБЯЗАТЕЛЬНО создаём роутер
 router = APIRouter(tags=["Hero"])
 
-# 📂 Пути к данным
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 HERO_STEPS_PATH = os.path.join(BASE_DIR, "data", "hero_steps.json")
 PROFESSIONS_PATH = os.path.join(BASE_DIR, "data", "professions.json")
 
-# 📥 Загрузка данных
 with open(HERO_STEPS_PATH, "r", encoding="utf-8") as f:
     ALL_STEPS = json.load(f)
 
 with open(PROFESSIONS_PATH, "r", encoding="utf-8") as f:
     ALL_PROFESSIONS = json.load(f)
 
-# 📚 Модель данных для обновления шага
 class StepUpdate(BaseModel):
     step_id: str
     completed: bool
 
-# 🔹 Получение прогресса героя
 @router.get("/progress")
 def get_hero_progress(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     progress = db.query(UserHeroStep).filter(
@@ -40,7 +35,6 @@ def get_hero_progress(user: User = Depends(get_current_user), db: Session = Depe
     ).all()
     return [p.step_id for p in progress]
 
-# 🔹 Обновление прогресса героя
 @router.post("/progress")
 def update_hero_progress(data: StepUpdate, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     progress = db.query(UserHeroStep).filter(
@@ -73,7 +67,6 @@ def update_hero_progress(data: StepUpdate, user: User = Depends(get_current_user
     db.commit()
     return {"message": f"Шаг {data.step_id} обновлён! ✅ XP начислено: {points}"}
 
-# 🔹 Полный путь героя
 @router.get("/full")
 def get_full_hero_path(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     passed_tests = db.query(UserResult.test_id).filter(
@@ -118,7 +111,6 @@ def get_full_hero_path(user: User = Depends(get_current_user), db: Session = Dep
 
     return {"stages": enriched_steps}
 
-# 🔹 Получение подходящих профессий
 @router.get("/professions")
 def get_professions_by_full_profile(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     if not user:
@@ -132,7 +124,9 @@ def get_professions_by_full_profile(user: User = Depends(get_current_user), db: 
     results = db.query(UserResult).filter_by(user_id=user.id).all()
     for res in results:
         try:
-            data = json.loads(res.answers)
+            data = res.answers
+            if isinstance(data, str):
+                data = json.loads(data)
             if res.test_id == 1:  # CoreTalents
                 coretalents_top5 = sorted(data.items(), key=lambda x: x[1], reverse=True)[:5]
                 coretalents_top5 = [str(talent_id) for talent_id, _ in coretalents_top5]
@@ -171,7 +165,6 @@ def get_professions_by_full_profile(user: User = Depends(get_current_user), db: 
 
     return JSONResponse(content=match_professions(profile, ALL_PROFESSIONS, limit=5))
 
-# 🔹 Получение баллов за шаг
 def get_points_for_step(step_id: str) -> int:
     for stage in ALL_STEPS:
         for step in stage["steps"]:
