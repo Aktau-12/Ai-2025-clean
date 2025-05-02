@@ -1,4 +1,3 @@
-# app/routes/test.py
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from datetime import datetime
@@ -17,15 +16,12 @@ from pydantic import BaseModel
 
 router = APIRouter(tags=["Tests"])
 
-
-
 def get_db():
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
-
 
 def add_xp(user_id: int, db: Session, amount: int = 20):
     prog = db.query(UserHeroProgress).filter(UserHeroProgress.user_id == user_id).first()
@@ -36,7 +32,6 @@ def add_xp(user_id: int, db: Session, amount: int = 20):
         db.add(prog)
     db.commit()
 
-
 def safe_parse_json(data: Any) -> Any:
     if isinstance(data, str):
         try:
@@ -45,14 +40,12 @@ def safe_parse_json(data: Any) -> Any:
             return {}
     return data
 
-
 # 🔍 Маппинг CoreTalents
 mapping: Dict[int, int] = {}
 _map_path = Path(__file__).resolve().parent.parent / "data" / "coretalents_question_mapping.json"
 if _map_path.exists():
     raw = json.loads(_map_path.read_text(encoding="utf-8"))
     mapping = {int(item["question_id"]): int(item["talent_id"]) for item in raw}
-
 
 # 📊 Данные по талантам
 coretalents_data: Dict[str, Any] = {}
@@ -61,16 +54,20 @@ if _data_path.exists():
     raw = json.loads(_data_path.read_text(encoding="utf-8"))
     coretalents_data = {str(item["id"]): item for item in raw}
 
+# 📊 Данные по Big Five
+bigfive_data: Dict[str, Any] = {}
+_bigfive_path = Path(__file__).resolve().parent.parent / "data" / "bigfive_results.json"
+if _bigfive_path.exists():
+    raw = json.loads(_bigfive_path.read_text(encoding="utf-8"))
+    bigfive_data = {item["trait"]: item for item in raw}
 
 # ─── Pydantic ─────────────────────────────────────────────────────────────
 class CoreTalentsSubmission(BaseModel):
     answers: Dict[int, int]
 
-
 class BigFiveSubmission(BaseModel):
     answers: List[Dict[str, Any]]
     result: Dict[str, Any]
-
 
 # ─── Вопросы ──────────────────────────────────────────────────────────────
 @router.get("/{test_id}/questions", status_code=status.HTTP_200_OK)
@@ -86,7 +83,6 @@ def get_test_questions(test_id: int, db: Session = Depends(get_db)):
         return [{"id": q.id, "text": q.text, "position": q.position} for q in qs]
     raise HTTPException(status_code=404, detail="Вопросы не найдены")
 
-
 # ─── Отправка CoreTalents ─────────────────────────────────────────────────
 @router.post("/1/submit", status_code=status.HTTP_201_CREATED)
 def submit_coretalents(
@@ -94,7 +90,6 @@ def submit_coretalents(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    # считаем баллы
     scores = {tid: 0 for tid in range(1, 35)}
     for q_id, val in submission.answers.items():
         tid = mapping.get(q_id)
@@ -104,7 +99,7 @@ def submit_coretalents(
     res = UserResult(
         user_id=user.id,
         test_id=1,
-        answers=submission.answers,  # сохраняем dict → JSONB
+        answers=submission.answers,
         score=scores,
         timestamp=datetime.utcnow(),
     )
@@ -114,8 +109,7 @@ def submit_coretalents(
     add_xp(user.id, db, amount=50)
     return {"message": "CoreTalents submitted", "result_id": res.id}
 
-
-# ─── Отправка прочих тестов (BigFive, MBTI) ───────────────────────────────
+# ─── Отправка прочих тестов ───────────────────────────────────────────────
 @router.post("/{test_id}/submit", status_code=status.HTTP_201_CREATED)
 def submit_other(
     test_id: int,
@@ -140,7 +134,6 @@ def submit_other(
 
     return {"message": f"Test {test_id} submitted", "result_id": res.id}
 
-
 # ─── Получение результата BigFive ──────────────────────────────────────────
 @router.get("/2/result", status_code=status.HTTP_200_OK)
 def get_bigfive_result(
@@ -160,7 +153,6 @@ def get_bigfive_result(
         raise HTTPException(status_code=400, detail="Неверный формат результата")
     return parsed
 
-
 # ─── CoreTalents результаты ───────────────────────────────────────────────
 @router.get("/1/results", status_code=status.HTTP_200_OK)
 def get_coretalents_results(
@@ -179,7 +171,6 @@ def get_coretalents_results(
         "answers": safe_parse_json(rec.answers),
         "scores": safe_parse_json(rec.score),
     }
-
 
 # ─── Моя история по всем тестам ────────────────────────────────────────────
 @router.get("/my-results", status_code=status.HTTP_200_OK)
@@ -218,7 +209,17 @@ def get_my_results(
     )
     if big:
         parsed = safe_parse_json(big.answers)
-        summary = "; ".join([f"{k}: {v}" for k, v in parsed.items()])
+        if isinstance(parsed, dict):
+            top_traits = sorted(parsed.items(), key=lambda x: x[1], reverse=True)[:5]
+            top_descriptions = []
+            for trait_code, score in top_traits:
+                trait_info = bigfive_data.get(trait_code.upper(), {})
+                name = trait_info.get("name", trait_code)
+                desc = trait_info.get("description", "")
+                top_descriptions.append(f"{name}: {desc}")
+            summary = " / ".join(top_descriptions)
+        else:
+            summary = "Нет данных"
         results.append({
             "test_name": "Big Five",
             "result_id": big.id,
