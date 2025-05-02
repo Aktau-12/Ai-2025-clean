@@ -15,7 +15,8 @@ from app.models.hero import UserHeroProgress
 from app.routes.auth import get_current_user
 from pydantic import BaseModel
 
-router = APIRouter(prefix="/tests", tags=["Tests"])
+router = APIRouter(tags=["Tests"])
+
 
 
 def get_db():

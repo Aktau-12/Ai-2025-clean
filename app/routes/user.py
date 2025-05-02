@@ -30,34 +30,37 @@ class UserCreate(BaseModel):
 # ✅ Регистрация нового пользователя
 @router.post("/register", response_model=dict)
 def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
-    if db.query(User).filter(User.email == user_data.email).first():
+    existing_user = db.query(User).filter(User.email == user_data.email).first()
+    if existing_user:
         raise HTTPException(status_code=400, detail="⛔ Этот email уже зарегистрирован")
 
     hashed_password = hash_password(user_data.password)
 
-    # 1. Создаём и сохраняем пользователя
-    user = User(
-        email=user_data.email,
-        name=user_data.name,
-        password_hash=hashed_password,
-        archetype=None
-    )
-    db.add(user)
-    db.commit()
-    db.refresh(user)  # ✅ Обязательно: получить ID до использования
+    try:
+        user = User(
+            email=user_data.email,
+            name=user_data.name,
+            password_hash=hashed_password,
+            archetype=None
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)  # ✅ Обязательно: получить ID до использования
 
-    # 📤 Лог в консоль:
-    print(f"✅ USER REGISTERED: id={user.id}, email={user.email}")
+        # Проверяем, есть ли прогресс героя
+        progress = db.query(UserHeroProgress).filter_by(user_id=user.id).first()
+        if not progress:
+            progress = UserHeroProgress(user_id=user.id, xp=0)
+            db.add(progress)
+            db.commit()
 
-    # 2. Создаём прогресс героя
-    progress = UserHeroProgress(user_id=user.id, xp=0)
-    db.add(progress)
-    db.commit()
-
-    return {
-        "message": "✅ Пользователь успешно зарегистрирован!",
-        "user_id": user.id
-    }
+        return {
+            "message": "✅ Пользователь успешно зарегистрирован!",
+            "user_id": user.id
+        }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"❌ Ошибка регистрации: {str(e)}")
 
 # ✅ Получение текущего пользователя
 @router.get("/me")
