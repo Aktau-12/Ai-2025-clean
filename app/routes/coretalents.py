@@ -20,29 +20,6 @@ def get_db():
     finally:
         db.close()
 
-@router.get("/")
-def get_tests(db: Session = Depends(get_db)):
-    return db.query(Test).all()
-
-@router.get("/gallup")
-def get_gallup_test(db: Session = Depends(get_db)):
-    test = db.query(Test).filter(Test.name == "Gallup StrengthsFinder").first()
-    if not test:
-        raise HTTPException(status_code=404, detail="Gallup test not found")
-    return {"test_id": test.id, "questions": [q.text for q in test.questions]}
-
-@router.post("/gallup/submit")
-def submit_gallup_test(answers: dict, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    test = db.query(Test).filter(Test.name == "Gallup StrengthsFinder").first()
-    if not test:
-        raise HTTPException(status_code=404, detail="Gallup test not found")
-
-    result = UserResult(user_id=user.id, test_id=test.id, answers=str(answers), score=0)
-    db.add(result)
-    db.commit()
-    
-    return {"message": "Gallup test submitted!", "result_id": result.id}
-
 @router.get("/coretalents")
 def get_coretalents_questions(db: Session = Depends(get_db)):
     questions = db.query(CoreQuestion).order_by(CoreQuestion.position).all()
@@ -66,14 +43,12 @@ def submit_coretalents_test(
     if not test:
         raise HTTPException(status_code=404, detail="CoreTalents test not found")
 
-    # Считаем баллы по талантам
     scores = Counter()
     for k, v in answers.items():
         scores[int(k)] += v
 
     top_5_ids = [tid for tid, _ in scores.most_common(5)]
 
-    # Загружаем данные талантов
     data_path = os.path.join("app", "data", "coretalents_results_data_full.json")
     try:
         with open(data_path, "r", encoding="utf-8") as f:
@@ -93,7 +68,6 @@ def submit_coretalents_test(
         score=json.dumps(dict(scores)),
         summary=summary_text
     )
-
     db.add(result)
     db.commit()
 
@@ -104,37 +78,35 @@ def get_coretalents_results(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    # Берём последний результат пользователя
     rec = (
         db.query(UserResult)
-        .filter(UserResult.user_id == user.id, UserResult.test_id == 1)
+        .filter(UserResult.user_id == user.id)
+        .join(Test)
+        .filter(Test.name.ilike("%CoreTalents%"))
         .order_by(UserResult.timestamp.desc())
         .first()
     )
     if not rec:
         raise HTTPException(status_code=404, detail="Результат не найден")
 
-    # Парсим сохранённые баллы
     scores = json.loads(rec.score)
 
-    # Загружаем данные талантов
     data_path = os.path.join("app", "data", "coretalents_results_data_full.json")
     with open(data_path, "r", encoding="utf-8") as f:
         talents_raw = json.load(f)
         talent_dict = {t["id"]: t for t in talents_raw}
 
-    # Сортируем таланты по баллам
     sorted_scores = sorted(scores.items(), key=lambda x: x[1], reverse=True)
 
-    # Формируем ответ без поля 'score'
     result = []
-    for i, (tid, _) in enumerate(sorted_scores, 1):
+    for i, (tid, score) in enumerate(sorted_scores, 1):
         talent = talent_dict.get(int(tid))
         if talent:
             result.append({
                 "rank": i,
                 "id": int(tid),
                 "name": talent["name"],
+                "score": score,
                 "description": talent["description"],
                 "details": talent["details"]
             })
@@ -143,6 +115,7 @@ def get_coretalents_results(
                 "rank": i,
                 "id": int(tid),
                 "name": f"Талант {tid}",
+                "score": score,
                 "description": "Описание отсутствует",
                 "details": ""
             })

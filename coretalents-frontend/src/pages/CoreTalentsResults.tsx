@@ -1,7 +1,5 @@
-// src/pages/CoreTalentsResults.tsx
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import talentsData from "../data/coretalents_results_data.json";
 import { useNavigate } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -12,6 +10,7 @@ type TalentResultType = {
   description: string;
   details: string;
   score: number;
+  rank: number;
 };
 
 export default function CoreTalentsResults() {
@@ -29,31 +28,18 @@ export default function CoreTalentsResults() {
           return;
         }
 
-        const response = await axios.get(`${API_URL}/tests/1/results`, {
+        const response = await axios.get(`${API_URL}/coretalents/results`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        const scores: Record<string, number> = response.data.scores || {};
+        const data = response.data.results;
 
-        if (Object.keys(scores).length === 0) {
+        if (!data || data.length === 0) {
           setError("⛔ Результаты CoreTalents отсутствуют. Пройдите тест.");
           return;
         }
 
-        const mappedResults = Object.entries(scores)
-          .map(([talentId, score]) => {
-            const talent = talentsData.find((t) => Number(t.id) === Number(talentId));
-            return {
-              id: Number(talentId),
-              name: talent?.name || `Талант ${talentId}`,
-              description: talent?.description || "Описание отсутствует",
-              details: talent?.details || "",
-              score: Number(score) || 0,
-            };
-          })
-          .sort((a, b) => b.score - a.score);
-
-        setResults(mappedResults);
+        setResults(data);
       } catch (error: any) {
         console.error("❌ Ошибка загрузки результатов:", error);
         setError("Ошибка при загрузке результатов. Попробуйте позже.");
