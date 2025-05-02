@@ -4,7 +4,7 @@ from app.database.db import SessionLocal
 from app.models.user import User
 from app.routes.auth import get_current_user
 
-from app.models.test import Test, Question, UserResult
+from app.models.test import Test, UserResult
 from app.models.coretalents import CoreQuestion
 import json
 import os
@@ -19,6 +19,29 @@ def get_db():
         yield db
     finally:
         db.close()
+
+@router.get("/")
+def get_tests(db: Session = Depends(get_db)):
+    return db.query(Test).all()
+
+@router.get("/gallup")
+def get_gallup_test(db: Session = Depends(get_db)):
+    test = db.query(Test).filter(Test.name == "Gallup StrengthsFinder").first()
+    if not test:
+        raise HTTPException(status_code=404, detail="Gallup test not found")
+    return {"test_id": test.id, "questions": [q.text for q in test.questions]}
+
+@router.post("/gallup/submit")
+def submit_gallup_test(answers: dict, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    test = db.query(Test).filter(Test.name == "Gallup StrengthsFinder").first()
+    if not test:
+        raise HTTPException(status_code=404, detail="Gallup test not found")
+
+    result = UserResult(user_id=user.id, test_id=test.id, answers=str(answers), score=0)
+    db.add(result)
+    db.commit()
+    
+    return {"message": "Gallup test submitted!", "result_id": result.id}
 
 @router.get("/coretalents")
 def get_coretalents_questions(db: Session = Depends(get_db)):
@@ -43,12 +66,14 @@ def submit_coretalents_test(
     if not test:
         raise HTTPException(status_code=404, detail="CoreTalents test not found")
 
+    # Считаем баллы по талантам
     scores = Counter()
     for k, v in answers.items():
         scores[int(k)] += v
 
     top_5_ids = [tid for tid, _ in scores.most_common(5)]
 
+    # Загружаем данные талантов
     data_path = os.path.join("app", "data", "coretalents_results_data_full.json")
     try:
         with open(data_path, "r", encoding="utf-8") as f:
@@ -68,56 +93,65 @@ def submit_coretalents_test(
         score=json.dumps(dict(scores)),
         summary=summary_text
     )
+
     db.add(result)
     db.commit()
 
     return {"message": "CoreTalents test submitted!", "result_id": result.id}
 
-@router.get("/results")
+@router.get("/coretalents/results")
 def get_coretalents_results(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     rec = (
         db.query(UserResult)
-        .filter(UserResult.user_id == user.id)
-        .join(Test)
-        .filter(Test.name.ilike("%CoreTalents%"))
+        .filter(UserResult.user_id == user.id, UserResult.test_id == 1)
         .order_by(UserResult.timestamp.desc())
         .first()
     )
     if not rec:
         raise HTTPException(status_code=404, detail="Результат не найден")
 
-    scores = json.loads(rec.score)
+    # ✅ Безопасное чтение score
+    if isinstance(rec.score, dict):
+        scores = rec.score
+    elif isinstance(rec.score, str):
+        scores = json.loads(rec.score)
+    else:
+        raise HTTPException(status_code=500, detail="Неверный формат данных в поле score")
 
+    # Загружаем данные талантов
     data_path = os.path.join("app", "data", "coretalents_results_data_full.json")
     with open(data_path, "r", encoding="utf-8") as f:
         talents_raw = json.load(f)
         talent_dict = {t["id"]: t for t in talents_raw}
 
+    # Сортируем по баллам
     sorted_scores = sorted(scores.items(), key=lambda x: x[1], reverse=True)
 
     result = []
-    for i, (tid, score) in enumerate(sorted_scores, 1):
-        talent = talent_dict.get(int(tid))
+    for i, (tid, _) in enumerate(sorted_scores, 1):
+        tid_int = int(tid)
+        talent = talent_dict.get(tid_int)
+        score_value = scores[str(tid)] if isinstance(tid, str) else scores[tid]
         if talent:
             result.append({
                 "rank": i,
-                "id": int(tid),
+                "id": tid_int,
                 "name": talent["name"],
-                "score": score,
                 "description": talent["description"],
-                "details": talent["details"]
+                "details": talent["details"],
+                "score": score_value
             })
         else:
             result.append({
                 "rank": i,
-                "id": int(tid),
+                "id": tid_int,
                 "name": f"Талант {tid}",
-                "score": score,
                 "description": "Описание отсутствует",
-                "details": ""
+                "details": "",
+                "score": score_value
             })
 
     return {"results": result}
