@@ -99,36 +99,50 @@ def submit_coretalents_test(
 
     return {"message": "CoreTalents test submitted!", "result_id": result.id}
 
-class TalentInput(BaseModel):
-    id: int
-    score: int
+@router.get("/coretalents/results")
+def get_coretalents_results(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    # Берём последний результат пользователя
+    rec = (
+        db.query(UserResult)
+        .filter(UserResult.user_id == user.id, UserResult.test_id == 1)
+        .order_by(UserResult.timestamp.desc())
+        .first()
+    )
+    if not rec:
+        raise HTTPException(status_code=404, detail="Результат не найден")
 
-@router.post("/coretalents/results")
-def get_coretalents_results(top_talents: list[TalentInput]):
+    # Парсим сохранённые баллы
+    scores = json.loads(rec.score)
+
+    # Загружаем данные талантов
     data_path = os.path.join("app", "data", "coretalents_results_data_full.json")
-
     with open(data_path, "r", encoding="utf-8") as f:
         talents_raw = json.load(f)
         talent_dict = {t["id"]: t for t in talents_raw}
 
+    # Сортируем таланты по баллам
+    sorted_scores = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+
+    # Формируем ответ без поля 'score'
     result = []
-    for i, item in enumerate(top_talents, 1):
-        talent = talent_dict.get(item.id)
+    for i, (tid, _) in enumerate(sorted_scores, 1):
+        talent = talent_dict.get(int(tid))
         if talent:
             result.append({
                 "rank": i,
-                "id": item.id,
+                "id": int(tid),
                 "name": talent["name"],
-                "score": item.score,
                 "description": talent["description"],
                 "details": talent["details"]
             })
         else:
             result.append({
                 "rank": i,
-                "id": item.id,
-                "name": f"Талант {item.id}",
-                "score": item.score,
+                "id": int(tid),
+                "name": f"Талант {tid}",
                 "description": "Описание отсутствует",
                 "details": ""
             })
