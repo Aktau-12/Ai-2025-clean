@@ -3,9 +3,8 @@ from sqlalchemy.orm import Session
 from app.models.user import User
 from app.models.hero import UserHeroProgress
 from app.database.db import SessionLocal
-from app.routes.auth import get_current_user
+from app.routes.auth import get_current_user, get_password_hash  # ✅ импортируем get_password_hash
 from pydantic import BaseModel
-from passlib.hash import bcrypt
 
 router = APIRouter()
 
@@ -16,10 +15,6 @@ def get_db():
         yield db
     finally:
         db.close()
-
-# ✅ Хеширование пароля
-def hash_password(password: str) -> str:
-    return bcrypt.hash(password)
 
 # ✅ Модель данных для регистрации
 class UserCreate(BaseModel):
@@ -34,7 +29,7 @@ def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
     if existing_user:
         raise HTTPException(status_code=400, detail="⛔ Этот email уже зарегистрирован")
 
-    hashed_password = hash_password(user_data.password)
+    hashed_password = get_password_hash(user_data.password)  # ✅ используем ту же функцию
 
     try:
         user = User(
@@ -45,7 +40,7 @@ def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
         )
         db.add(user)
         db.commit()
-        db.refresh(user)  # ✅ Обязательно: получить ID до использования
+        db.refresh(user)  # ✅ подтягиваем ID из базы
 
         # Проверяем, есть ли прогресс героя
         progress = db.query(UserHeroProgress).filter_by(user_id=user.id).first()
