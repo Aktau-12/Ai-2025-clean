@@ -1,4 +1,3 @@
-// src/pages/CoreTalentsTest.tsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -57,14 +56,14 @@ export default function CoreTalentsTest() {
     if (current < questions.length - 1) {
       setCurrent((prev) => prev + 1);
     } else {
-      handleSubmit(); // ✅ Автоматическая отправка после последнего вопроса
+      handleSubmit();
     }
   };
 
   const handleSubmit = async () => {
     try {
       await axios.post(
-        `${API_URL}/tests/1/submit`,
+        `${API_URL}/coretalents/submit`,
         { answers },
         {
           headers: {
