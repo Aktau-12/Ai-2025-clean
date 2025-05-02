@@ -99,7 +99,7 @@ def submit_coretalents_test(
 
     return {"message": "CoreTalents test submitted!", "result_id": result.id}
 
-@router.get("/coretalents/results")
+@router.get("/results")
 def get_coretalents_results(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -113,7 +113,7 @@ def get_coretalents_results(
     if not rec:
         raise HTTPException(status_code=404, detail="Результат не найден")
 
-    # ✅ Безопасное чтение score
+    # ✅ Безопасная обработка score
     if isinstance(rec.score, dict):
         scores = rec.score
     elif isinstance(rec.score, str):
@@ -127,7 +127,7 @@ def get_coretalents_results(
         talents_raw = json.load(f)
         talent_dict = {t["id"]: t for t in talents_raw}
 
-    # Сортируем по баллам
+    # Сортируем таланты по баллам
     sorted_scores = sorted(scores.items(), key=lambda x: x[1], reverse=True)
 
     result = []
