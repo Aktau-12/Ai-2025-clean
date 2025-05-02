@@ -211,13 +211,12 @@ def get_my_results(
         parsed = safe_parse_json(big.answers)
         if isinstance(parsed, dict):
             top_traits = sorted(parsed.items(), key=lambda x: x[1], reverse=True)[:5]
-            top_descriptions = []
+            top_names = []
             for trait_code, score in top_traits:
                 trait_info = bigfive_data.get(trait_code.upper(), {})
                 name = trait_info.get("name", trait_code)
-                desc = trait_info.get("description", "")
-                top_descriptions.append(f"{name}: {desc}")
-            summary = " / ".join(top_descriptions)
+                top_names.append(name)
+            summary = " / ".join(top_names)
         else:
             summary = "Нет данных"
         results.append({
